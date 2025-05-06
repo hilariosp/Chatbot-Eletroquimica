@@ -111,6 +111,31 @@ footer {
     border-bottom: 1px solid #333;
 }
 
+.transparent-toggler {
+    border: none !important;
+    background: transparent !important;
+    color: white !important;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.transparent-toggler:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    color: rgba(255, 255, 255, 1) !important;
+}
+.transparent-toggler:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+.transparent-toggler:active {
+    transform: scale(0.98);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .hero-section {

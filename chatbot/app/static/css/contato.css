@@ -119,6 +119,31 @@ footer {
     box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
 }
 
+.transparent-toggler {
+    border: none !important;
+    background: transparent !important;
+    color: white !important;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.transparent-toggler:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    color: rgba(255, 255, 255, 1) !important;
+}
+.transparent-toggler:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+.transparent-toggler:active {
+    transform: scale(0.98);
+}
+
 /* Responsividade */
 @media (max-width: 992px) {
     .border-end {
@@ -127,12 +152,19 @@ footer {
         padding-bottom: 2rem;
         margin-bottom: 2rem;
     }
-    
+
+}
+
+@media (max-width: 768px) {
     .hero-section {
         height: 50vh;
     }
     
     .hero-section h1 {
         font-size: 2.5rem;
+    }
+    
+    .feature-icon {
+        font-size: 1.5rem;
     }
 }

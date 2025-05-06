@@ -18,29 +18,31 @@ body {
     padding: 1rem 0;
 }
 
-.navbar-toggler-custom {
-    background-color: var(--accent-color);
-    border: none;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.25rem;
-}
-
-.navbar-toggler-custom .navbar-toggler-icon {
-    filter: brightness(0) invert(1);
-    background-image: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.navbar-toggler-custom .navbar-toggler-icon i {
-    font-size: 1.5rem;
-}
-
-.navbar-toggler-custom:focus {
-    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
-}
-
+.transparent-toggler {
+        border: none !important;
+        background: transparent !important;
+        color: white !important;
+        font-size: 1.5rem;
+        padding: 0.5rem;
+        transition: all 0.2s ease-in-out;
+        opacity: 0.9;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .transparent-toggler:hover {
+        opacity: 1;
+        transform: scale(1.05);
+        color: rgba(255, 255, 255, 1) !important;
+    }
+    .transparent-toggler:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+    .transparent-toggler:active {
+        transform: scale(0.98);
+    }
+    
 .hero-section {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://source.unsplash.com/random/1920x1080/?ai,technology');
     background-size: cover;
