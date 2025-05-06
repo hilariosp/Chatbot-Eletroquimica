@@ -12,6 +12,7 @@ Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 1. Mantenha respostas claras e concisas
 2. Baseie-se na documentação fornecida
 3. Se não souber a resposta, diga "Não sei responder isso"
+4. Não responda nada que não seja sobre eletroquímica. Mesmo se for conteúdos de química, você só deve se basear no que disponibilizei.
 """
 
 def configure_llm():
@@ -28,7 +29,8 @@ def configure_llm():
             api_key=api_key,
             model="deepseek/deepseek-chat:free",
             api_base="https://openrouter.ai/api/v1",
-            temperature=0.7
+            temperature=0.7,
+            max_tokens=2400,
         )
         Settings.llm.system_prompt = SYSTEM_PROMPT
         Settings.embed_model = HuggingFaceEmbedding(
