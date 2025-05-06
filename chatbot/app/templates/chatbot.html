@@ -6,193 +6,7 @@
     <title>DanielIA Chat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        :root {
-            --bg-dark: #111;
-            --bg-darker: #000;
-            --accent-color: #dc3545;
-            --text-light: #f8f9fa;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-        }
-        a {
-            text-decoration: none;
-        }
-        textarea {
-            resize: none;
-            padding: 12px;
-            background-color: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-light);
-        }
-        .sidebar {
-            background-color: var(--bg-darker);
-            border-right: 1px solid #333;
-            height: 100vh;
-            position: fixed;
-            z-index: 1000;
-        }
-        .content {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-dark);
-        }
-        .chat-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background-color: var(--bg-dark);
-        }
-        .input-area {
-            background-color: var(--bg-darker);
-            padding: 20px;
-            border-top: 1px solid #333;
-        }
-        .message {
-            max-width: 80%;
-            margin-bottom: 16px;
-            animation: fadeIn 0.3s ease-out;
-        }
-        .user-message {
-            margin-left: auto;
-            background-color: var(--accent-color);
-            color: white;
-            border-radius: 18px 18px 4px 18px;
-        }
-        .bot-message {
-            margin-right: auto;
-            background-color: #2d2d2d;
-            color: white;
-            border-radius: 18px 18px 18px 4px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #999;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: bounce 1.4s infinite ease-in-out;
-        }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-        .new-chat-btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 15px;
-            margin: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            width: calc(100% - 20px);
-        }
-        .new-chat-btn:hover {
-            background-color: #c82333;
-        }
-        .chat-history {
-            padding: 10px;
-            color: #aaa;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .chat-history:hover {
-            background-color: #222;
-        }
-        .chat-history-title {
-            flex-grow: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .delete-chat-btn {
-            color: #dc3545;
-            background: none;
-            border: none;
-            padding: 5px;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .chat-history:hover .delete-chat-btn {
-            opacity: 1;
-        }
-        .sidebar-content {
-            display: block !important;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-        .confirm-delete {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .confirm-delete-box {
-            background-color: var(--bg-darker);
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 90%;
-            width: 400px;
-            text-align: center;
-        }
-        /* Mobile specific styles */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: 1px solid #333;
-            }
-            .sidebar-toggler {
-                display: block !important;
-            }
-            .content {
-                margin-left: 0 !important;
-            }
-            .message {
-                max-width: 90%;
-            }
-            .sidebar-content {
-                display: none !important;
-            }
-            .sidebar-content.show {
-                display: block !important;
-            }
-        }
-        @media (min-width: 992px) {
-            .sidebar {
-                width: 260px;
-            }
-            .content {
-                margin-left: 260px;
-            }
-            .sidebar-toggler {
-                display: none !important;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
 </head>
 <body>
     <div class="container-fluid p-0">
@@ -200,7 +14,7 @@
         <div class="sidebar">
             <div class="d-flex justify-content-between align-items-center p-3">
                 <div class="d-flex align-items-center">
-                    <a href="hub.html"><h2 class="m-0"><span class="text-white">Daniel</span><span class="text-danger">IA</span></h2></a>
+                    <a href="{{ url_for('main.index') }}"><h2 class="m-0"><span class="text-white">Daniel</span><span class="text-danger">IA</span></h2></a>
                 </div>
                 <button class="btn btn-danger sidebar-toggler d-none" type="button" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
@@ -268,28 +82,19 @@
             // Estado da aplicação
             let currentChatId = Date.now().toString();
             let chats = JSON.parse(localStorage.getItem('danielia-chats')) || {};
+            let chatToDelete = null;
             
-            // Inicializar se não existir chats
+            // Inicialização
             if (Object.keys(chats).length === 0) {
-                // Se não houver conversas, mostra apenas a tela inicial
                 currentChatId = 'temp-' + Date.now().toString();
             } else if (!chats[currentChatId]) {
-                // Se a conversa atual não existe, carrega a mais recente
                 const sortedChats = Object.values(chats).sort((a, b) => 
                     new Date(b.createdAt) - new Date(a.createdAt)
                 );
-                if (sortedChats.length > 0) {
-                    currentChatId = sortedChats[0].id;
-                    loadChat(currentChatId);
-                } else {
-                    currentChatId = 'temp-' + Date.now().toString();
-                }
-            } else {
-                // Carrega a conversa atual
-                loadChat(currentChatId);
+                currentChatId = sortedChats.length > 0 ? sortedChats[0].id : 'temp-' + Date.now().toString();
             }
             
-            // Carregar histórico de conversas
+            loadChat(currentChatId);
             loadChatHistory();
             
             // Auto-ajuste da altura do textarea
@@ -298,16 +103,13 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
             
-            // Função para salvar conversas no localStorage
+            // Funções auxiliares
             function saveChats() {
                 localStorage.setItem('danielia-chats', JSON.stringify(chats));
             }
             
-            // Função para carregar histórico de conversas
             function loadChatHistory() {
                 chatHistoryContainer.innerHTML = '';
-                
-                // Ordenar conversas por data (mais recente primeiro)
                 const sortedChats = Object.values(chats).sort((a, b) => 
                     new Date(b.createdAt) - new Date(a.createdAt)
                 );
@@ -343,76 +145,49 @@
                 });
             }
             
-            // Função para mostrar confirmação de exclusão
             function showDeleteConfirmation(chatId) {
                 chatToDelete = chatId;
                 confirmDeleteModal.style.display = 'flex';
             }
             
-            // Função para apagar conversa
             function deleteChat() {
                 if (!chatToDelete) return;
                 
-                // Se a conversa sendo apagada é a atual, limpa a tela
                 if (currentChatId === chatToDelete) {
                     currentChatId = 'temp-' + Date.now().toString();
-                    chatContainer.innerHTML = '';
-                    const welcomeDiv = document.createElement('div');
-                    welcomeDiv.className = 'text-center mt-5 pt-5';
-                    welcomeDiv.innerHTML = '<h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>';
-                    chatContainer.appendChild(welcomeDiv);
+                    chatContainer.innerHTML = `
+                        <div class="text-center mt-5 pt-5">
+                            <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                        </div>`;
                 }
                 
-                // Apagar a conversa do objeto chats
                 delete chats[chatToDelete];
                 saveChats();
                 loadChatHistory();
-                
-                // Fechar o modal
                 confirmDeleteModal.style.display = 'none';
                 chatToDelete = null;
             }
             
-            // Event listeners para o modal de confirmação
-            confirmDeleteBtn.addEventListener('click', deleteChat);
-            cancelDeleteBtn.addEventListener('click', () => {
-                confirmDeleteModal.style.display = 'none';
-                chatToDelete = null;
-            });
-            
-            // Fechar modal ao clicar fora
-            confirmDeleteModal.addEventListener('click', (e) => {
-                if (e.target === confirmDeleteModal) {
-                    confirmDeleteModal.style.display = 'none';
-                    chatToDelete = null;
-                }
-            });
-            
-            // Função para carregar uma conversa específica
             function loadChat(chatId) {
                 currentChatId = chatId;
+                chatContainer.innerHTML = '';
                 
-                // Se for uma conversa temporária, mostra apenas a tela inicial
                 if (chatId.startsWith('temp-')) {
-                    chatContainer.innerHTML = '';
-                    const welcomeDiv = document.createElement('div');
-                    welcomeDiv.className = 'text-center mt-5 pt-5';
-                    welcomeDiv.innerHTML = '<h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>';
-                    chatContainer.appendChild(welcomeDiv);
+                    chatContainer.innerHTML = `
+                        <div class="text-center mt-5 pt-5">
+                            <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                        </div>`;
                     return;
                 }
-                
+            
                 const chat = chats[chatId];
                 if (!chat) return;
                 
-                // Limpar chat container
-                chatContainer.innerHTML = '';
-                
                 if (chat.messages.length === 0) {
-                    const welcomeDiv = document.createElement('div');
-                    welcomeDiv.className = 'text-center mt-5 pt-5';
-                    welcomeDiv.innerHTML = '<h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>';
-                    chatContainer.appendChild(welcomeDiv);
+                    chatContainer.innerHTML = `
+                        <div class="text-center mt-5 pt-5">
+                            <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                        </div>`;
                 } else {
                     chat.messages.forEach(msg => {
                         addMessage(msg.content, msg.isUser, false);
@@ -422,30 +197,22 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
             
-            // Função para criar nova conversa (modificada)
             function createNewChat() {
-                // Limpa o chat atual sem criar nova conversa ainda
                 currentChatId = 'temp-' + Date.now().toString();
-                chatContainer.innerHTML = '';
-                const welcomeDiv = document.createElement('div');
-                welcomeDiv.className = 'text-center mt-5 pt-5';
-                welcomeDiv.innerHTML = '<h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>';
-                chatContainer.appendChild(welcomeDiv);
+                chatContainer.innerHTML = `
+                    <div class="text-center mt-5 pt-5">
+                        <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                    </div>`;
                 
-                // Fecha sidebar em mobile
                 if (window.innerWidth <= 991.98) {
-                    document.getElementById('sidebarContent').classList.remove('show');
+                    document.getElementById('sidebarContent').classList.remove('show'); 
                 }
                 
-                // Foca no input para o usuário começar a digitar
                 userInput.focus();
             }
             
-            // Função para adicionar mensagens ao chat (modificada)
             function addMessage(content, isUser = false, saveToHistory = true) {
-                // Se for a primeira mensagem do usuário em uma conversa temporária
                 if (isUser && currentChatId.startsWith('temp-')) {
-                    // Cria a conversa definitiva
                     const newChatId = Date.now().toString();
                     chats[newChatId] = {
                         id: newChatId,
@@ -462,7 +229,6 @@
                     loadChatHistory();
                 }
                 else if (saveToHistory && chats[currentChatId]) {
-                    // Adiciona à conversa existente
                     const chat = chats[currentChatId];
                     chat.messages.push({
                         content,
@@ -470,7 +236,6 @@
                         timestamp: new Date().toISOString()
                     });
                     
-                    // Atualiza título se for a primeira mensagem
                     if (isUser && chat.messages.length === 1) {
                         chat.title = content.length > 30 ? content.substring(0, 30) + '...' : content;
                     }
@@ -479,7 +244,6 @@
                     loadChatHistory();
                 }
 
-                // Adiciona a mensagem ao chat
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message p-3 ${isUser ? 'user-message' : 'bot-message'}`;
                 messageDiv.textContent = content;
@@ -493,7 +257,6 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
             
-            // Função para mostrar indicador de digitação
             function showTyping() {
                 const typingDiv = document.createElement('div');
                 typingDiv.className = 'message p-3 bot-message typing-indicator';
@@ -503,7 +266,6 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
             
-            // Função para enviar mensagem
             async function sendMessage() {
                 const message = userInput.value.trim();
                 if (!message) return;
@@ -515,17 +277,13 @@
                 showTyping();
                 
                 try {
-                    const response = await fetch('http://127.0.0.1:5000/query', {
+                    const response = await fetch('{{ url_for("api.handle_query") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ query: message })
                     });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP: ${response.status}`);
-                    }
                     
                     const data = await response.json();
                     document.getElementById('typing-indicator').remove();
@@ -541,11 +299,24 @@
                     const typing = document.getElementById('typing-indicator');
                     if (typing) typing.remove();
                     
-                    addMessage('⚠️ Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+                    addMessage('⚠️ Não foi possível conectar ao servidor. Verifique sua conexão.');
                 }
             }
             
             // Event listeners
+            confirmDeleteBtn.addEventListener('click', deleteChat);
+            cancelDeleteBtn.addEventListener('click', () => {
+                confirmDeleteModal.style.display = 'none';
+                chatToDelete = null;
+            });
+            
+            confirmDeleteModal.addEventListener('click', (e) => {
+                if (e.target === confirmDeleteModal) {
+                    confirmDeleteModal.style.display = 'none';
+                    chatToDelete = null;
+                }
+            });
+            
             sendButton.addEventListener('click', sendMessage);
             newChatBtn.addEventListener('click', createNewChat);
             
@@ -556,10 +327,7 @@
                 }
             });
             
-            // Foco automático no input
             userInput.focus();
-            
-            // Ajustar altura inicial do textarea
             userInput.style.height = 'auto';
             userInput.style.height = (userInput.scrollHeight) + 'px';
         });
