@@ -1,0 +1,211 @@
+[
+  {
+    "questao": "Qual dos seguintes processos representa uma oxidação?",
+    "alternativas": {
+      "A": "Ganho de elétrons",
+      "B": "Diminuição do número de oxidação",
+      "C": "Perda de elétrons",
+      "D": "Formação de ligações",
+      "E": "Precipitação de um sólido"
+    },
+    "resposta_correta": "C"
+  },
+  {
+    "questao": "Uma pilha de Daniell é construída com eletrodos de zinco e cobre, mergulhados em soluções aquosas de sulfato de zinco (ZnSO_4) e sulfato de cobre (CuSO_4), respectivamente. Uma ponte salina conecta as duas semicelas. Durante o funcionamento da pilha, observa-se:\nI. Deposição de cobre metálico no eletrodo de cobre.\nII. Consumo do eletrodo de zinco.\nIII. Fluxo de elétrons do eletrodo de cobre para o eletrodo de zinco.\nIV. Fluxo de íons positivos da semicela de zinco para a semicela de cobre através da ponte salina.\nQuais das afirmações estão corretas?",
+    "alternativas": {
+      "A": "I e II, apenas.",
+      "B": "I e III, apenas.",
+      "C": "II e III, apenas.",
+      "D": "I, II e IV, apenas.",
+      "E": "I, II, III e IV."
+    },
+    "resposta_correta": "D"
+  },
+  {
+    "questao": "O esquema representa uma célula eletroquímica, também conhecida como pilha de Daniell.\nZn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)\nNessa pilha, a reação global que ocorre é:",
+    "alternativas": {
+      "A": "Zn(s)+Cu2+(aq) → Zn2+(aq)+Cu(s)",
+      "B": "Cu(s)+Zn2+(aq) → Cu2+(aq)+Zn(s)",
+      "C": "Zn2+(aq)+Cu2+(aq) → Zn(s)+Cu(s)",
+      "D": "Zn(s)+Cu(s) → Zn2+(aq)+Cu2+(aq)",
+      "E": "Zn2+(aq)+Cu(s) → Zn(s)+Cu2+(aq)"
+    },
+    "resposta_correta": "A"
+  },
+  {
+    "questao": "Uma célula galvânica é construída com um eletrodo de zinco mergulhado em uma solução 1,0 mol/L de sulfato de zinco e um eletrodo de cobre mergulhado em uma solução 1,0 mol/L de sulfato de cobre, conectados por uma ponte salina. As semirreações e seus respectivos potenciais de redução padrão (E°) a 25 °C são dados abaixo:\nZn2+(aq)+2e →  Zn(s)  E°=−0,76 V\nCu2+(aq)+2e → Cu(s)  E°=+0,34 V\nQual é a força eletromotriz (fem) padrão dessa célula galvânica?",
+    "alternativas": {
+      "A": "-1,10 V",
+      "B": "-0,42 V",
+      "C": "+0,42 V",
+      "D": "+1,10 V",
+      "E": "+2,20 V"
+    },
+    "resposta_correta": "D"
+  },
+  {
+    "questao": "Em uma pilha de Daniell, ocorre a seguinte reação global:\nZn(s)+Cu2+(aq)→ Zn2+(aq)+Cu(s)\nNessa pilha, o eletrodo de zinco sofre __________, atuando como __________, e o eletrodo de cobre sofre __________, atuando como __________.",
+    "alternativas": {
+      "A": "oxidação; cátodo; redução; ânodo",
+      "B": "oxidação; ânodo; redução; cátodo",
+      "C": "redução; cátodo; oxidação; ânodo",
+      "D": "redução; ânodo; oxidação; cátodo",
+      "E": "neutralização; eletrodo positivo; neutralização; eletrodo negativo"
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "Em uma célula eletroquímica, a ponte salina é essencial para o seu funcionamento. Qual a principal função da ponte salina em uma pilha de Daniell?",
+    "alternativas": {
+      "A": "Permitir o fluxo de elétrons entre os eletrodos.",
+      "B": "Manter a eletroneutralidade das soluções nos compartimentos anódico e catódico.",
+      "C": "Promover a reação química entre os metais dos eletrodos.",
+      "D": "Impedir o contato direto entre as soluções dos eletrodos.",
+      "E": "Aumentar a condutividade elétrica das soluções."
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "Considere a seguinte pilha de Daniell em condições padrão:\nZn(s)∣Zn2+(aq,1,0mol/L)∣∣Cu2+(aq,1,0mol/L)∣Cu(s)\nAs semirreações e seus potenciais padrão de redução são:\nZn2+(aq)+2e → Zn(s) E°=−0,76V\nCu2+(aq)+2e → Cu(s) E°=+0,34V\nSe a concentração de íons Cu2+ na solução for diminuída para 0,010 mol/L, mantendo a concentração de íons Zn2+ em 1,0 mol/L e a temperatura em 25 °C, o valor da força eletromotriz da pilha:",
+    "alternativas": {
+      "A": "permanecerá inalterado, pois a concentração de um dos íons não afeta o potencial da pilha.",
+      "B": "aumentará, pois a diminuição da concentração do cátion redutor desloca o equilíbrio no sentido da reação espontânea.",
+      "C": "diminuirá, pois a diminuição da concentração do cátion oxidante dificulta a ocorrência da redução.",
+      "D": "aumentará, pois a diminuição da concentração do cátion oxidante facilita a ocorrência da oxidação.",
+      "E": "diminuirá, pois a diminuição da concentração do cátion redutor dificulta a ocorrência da oxidação."
+    },
+    "resposta_correta": "C"
+  },
+  {
+    "questao": "Uma pilha de Daniell foi montada utilizando eletrodos de zinco e cobre, imersos em soluções aquosas de sulfato de zinco e sulfato de cobre, respectivamente, com uma ponte salina conectando as duas semicelas. Após um certo tempo de funcionamento, observou-se um aumento na massa do eletrodo de cobre e uma diminuição na massa do eletrodo de zinco. Essas observações indicam que:",
+    "alternativas": {
+      "A": "íons zinco estão sendo reduzidos a zinco metálico e íons cobre estão sendo oxidados a cobre metálico.",
+      "B": "elétrons estão fluindo do eletrodo de cobre para o eletrodo de zinco através do circuito externo.",
+      "C": "a concentração de íons cobre na solução está aumentando e a concentração de íons zinco está diminuindo.",
+      "D": "o zinco metálico está sendo oxidado a íons zinco e íons cobre estão sendo reduzidos a cobre metálico.",
+      "E": "a ponte salina deixou de funcionar, interrompendo o fluxo de íons entre as semicelas."
+    },
+    "resposta_correta": "D"
+  },
+  {
+    "questao": "Uma pilha galvânica é construída com eletrodos de prata e zinco, imersos em soluções aquosas de seus respectivos íons, com concentrações de 1 mol/L, a 25 °C. Uma ponte salina conecta as duas semicelas. As semirreações de redução e seus potenciais padrão são:\nAg+(aq)+e−→Ag(s) E°=+0,80V\nZn2+(aq)+2e−→Zn(s) E°=−0,76V\nQual é a força eletromotriz padrão dessa pilha?",
+    "alternativas": {
+      "A": "-1,56 V",
+      "B": "-0,04 V",
+      "C": "+0,04 V",
+      "D": "+1,56 V",
+      "E": "+2,36 V"
+    },
+    "resposta_correta": "D"
+  },
+  {
+    "questao": "O ferro é um metal de transição que possui múltiplos estados de oxidação. Um béquer contém uma solução aquosa de sulfato de ferro(II) acidificada com ácido sulfúrico. Adiciona-se, sob agitação, uma solução aquosa de permanganato de potássio (KMnO4​). Observa-se uma mudança de coloração da solução de roxo para incolor, indicando que ocorreu uma reação de oxirredução. As semirreações envolvidas são:\nMnO4−​(aq)+8H+(aq)+5e−→Mn2+(aq)+4H2​O(l)\nFe2+(aq)→Fe3+(aq)+e−\nQual é a equação iônica global balanceada dessa reação?",
+    "alternativas": {
+      "A": "MnO4−​(aq)+8H+(aq)+Fe2+(aq)→Mn2+(aq)+4H2​O(l)+Fe3+(aq)",
+      "B": "MnO4−​(aq)+8H+(aq)+5Fe2+(aq)→Mn2+(aq)+4H2​O(l)+5Fe3+(aq)",
+      "C": "MnO4−​(aq)+8H+(aq)+5Fe3+(aq)→Mn2+(aq)+4H2​O(l)+5Fe2+(aq)",
+      "D": "Mn2+(aq)+4H2​O(l)+5Fe2+(aq)→MnO4−​(aq)+8H+(aq)+5Fe3+(aq)",
+      "E": "Mn2+(aq)+4H2​O(l)+Fe3+(aq)→MnO4−​(aq)+8H+(aq)+Fe2+(aq)"
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "A corrosão é um processo eletroquímico espontâneo que causa deterioração de materiais, especialmente metais. Um exemplo comum é a ferrugem, que se forma quando o ferro metálico é exposto ao oxigênio e à umidade. As reações simplificadas que ocorrem nesse processo são:\nÂnodo (oxidação): Fe(s)→Fe2+(aq)+2e−\nCátodo (redução): O2​(g)+4H+(aq)+4e−→2H2​O(l)\nEm um objeto de ferro enferrujado, é comum encontrar regiões onde a concentração de íons Fe2+ é maior e outras onde a concentração de íons H+ é menor. Essas regiões correspondem, respectivamente, a:",
+    "alternativas": {
+      "A": "cátodo e ânodo.",
+      "B": "ânodo e cátodo.",
+      "C": "áreas de maior aeração e áreas de menor aeração.",
+      "D": "áreas de menor potencial elétrico e áreas de maior potencial elétrico.",
+      "E": "áreas onde a reação de oxidação é mais lenta e áreas onde a reação de redução é mais lenta."
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "Em uma pilha de Daniell, qual metal sofre oxidação?",
+    "alternativas": {
+      "A": "Cobre (Cu)",
+      "B": "Zinco (Zn)",
+      "C": "Prata (Ag)",
+      "D": "Ouro (Au)",
+      "E": "Platina (Pt)"
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "Na pilha de Daniell, os elétrons fluem do eletrodo de:",
+    "alternativas": {
+      "A": "Cobre para o zinco.",
+      "B": "Zinco para o cobre.",
+      "C": "Cobre para a solução de sulfato de zinco.",
+      "D": "Zinco para a solução de sulfato de cobre.",
+      "E": "Através da ponte salina."
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "Qual é a função da ponte salina em uma pilha de Daniell?",
+    "alternativas": {
+      "A": "Conectar os eletrodos metálicos.",
+      "B": "Permitir o fluxo de elétrons diretamente entre as semicelas.",
+      "C": "Manter a neutralidade elétrica das soluções nas semicelas.",
+      "D": "Promover a reação química nos eletrodos.",
+      "E": "Aquecer as soluções para aumentar a velocidade da reação."
+    },
+    "resposta_correta": "C"
+  },
+  {
+    "questao": "Na pilha de Daniell, qual semirreação ocorre no cátodo?",
+    "alternativas": {
+      "A": "Zn(s)→Zn2+(aq)+2e−",
+      "B": "Cu2+(aq)+2e−→Cu(s)",
+      "C": "Zn2+(aq)+2e−→Zn(s)",
+      "D": "Cu(s)→Cu2+(aq)+2e−",
+      "E": "Zn(s)+Cu2+(aq)→Zn2+(aq)+Cu(s)"
+    },
+    "resposta_correta": "B"
+  },
+  {
+    "questao": "Qual metal da pilha de Daniell sofre redução?",
+    "alternativas": {
+      "A": "Zinco (Zn)",
+      "B": "Íons zinco (Zn2+)",
+      "C": "Cobre (Cu)",
+      "D": "Íons cobre (Cu2+)",
+      "E": "Os íons da ponte salina."
+    },
+    "resposta_correta": "D"
+  },
+  {
+    "questao": "Os tanques de armazenamento de gasolina podem, com o tempo, sofrer processos oxidativos, resultando na contaminação do combustível e do solo à sua volta. Uma forma de evitar tais problemas econômicos e ambientais é utilizar preferencialmente metais de sacrifício, protegendo os tanques de armazenamento. Suponha que seja necessário usar um metal de sacrifício em um tanque de aço (liga de ferro carbono). Considere as semirreações de redução e seus respectivos potenciais padrão.\nDos metais citados, o que garantirá proteção ao tanque de aço é o:",
+    "alternativas": {
+      "A": "zinco.",
+      "B": "cobre.",
+      "C": "níquel.",
+      "D": "cádmio.",
+      "E": "mercúrio."
+    },
+    "resposta_correta": "A"
+  },
+  {
+    "questao": "Um cidadão que se mudou de Brasília para Recife, após algum tempo, percebeu que partes de seu carro estavam enferrujando muito rapidamente. Perguntou para seu filho, estudante do ensino médio, a explicação para o fenômeno. O filho pesquisou na internet e descobriu que, por causa da maresia, gotículas de água do mar atingem os objetos de aço (liga de ferro e carbono) e intensificam sua corrosão. Com base nessa informação, o estudante explicou corretamente ao pai o efeito do cloreto de sódio na corrosão. A explicação correta de a maresia acelerar a corrosão do aço é porque:",
+    "alternativas": {
+      "A": "reduz o ferro.",
+      "B": "oxida o carbono.",
+      "C": "dissolve a pintura do carro.",
+      "D": "torna a água mais condutora.",
+      "E": "diminui a dissolução do oxigênio na água."
+    },
+    "resposta_correta": "D"
+  },
+  {
+    "questao": "Algumas moedas utilizam cobre metálico em sua composição. Esse metal, ao ser exposto ao ar úmido, na presença de CO2, sofre oxidação formando o zinabre, um carbonato básico de fórmula Cu2(OH)2CO3, que é tóxico ao homem e, portanto, caracteriza-se como um poluente do meio ambiente. Com o objetivo de reduzir a contaminação com o zinabre, diminuir o custo de fabricação e aumentar a durabilidade das moedas, é comum utilizar ligas resultantes da associação do cobre com outro elemento metálico. A propriedade que o metal associado ao cobre deve apresentar para impedir a formação de zinabre nas moedas é, em relação ao cobre,",
+    "alternativas": {
+      "A": "maior caráter ácido.",
+      "B": "maior número de oxidação.",
+      "C": "menor potencial de redução.",
+      "D": "menor capacidade de reação.",
+      "E": "menor número de elétrons na camada de valência."
+    },
+    "resposta_correta": "C"
+  }
+]
