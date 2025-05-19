@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DanielIA - Recursos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/recursos.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <h2 class="m-0"><span class="text-white">Daniel</span><span class="text-danger">IA</span></h2>
+            </a>
+            <button class="transparent-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list"></i>
+                </span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ url_for('main.index') }}">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.recursos') }}" class="nav-link active text-white">Recursos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.sobre') }}" class="nav-link text-white">Sobre</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.contato') }}" class="nav-link text-white">Contato</a>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a href="{{ url_for('main.chatbot') }}" class="btn btn-danger">Experimentar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="display-3 fw-bold mb-4 animate-fade">Recursos da <span class="text-danger">DanielIA</span></h1>
+            <p class="lead mb-5 animate-fade delay-1">Descubra tudo o que nossa inteligência artificial pode oferecer</p>
+        </div>
+    </section>
+
+    <!-- Seção de Recursos Detalhados -->
+    <section class="py-5">
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-lg-6 mb-5">
+                    <h2 class="mb-4 animate-fade"><i class="bi bi-lightning-charge text-danger me-2"></i> Funcionalidades Principales</h2>
+                    
+                    <div class="card card-custom p-4 mb-3 animate-fade delay-1">
+                        <div class="d-flex align-items-start">
+                            <div class="feature-icon me-3">
+                                <i class="bi bi-activity"></i>
+                            </div>
+                            <div>
+                                <h3>Análise Eletroquímica</h3>
+                                <p>Explicações detalhadas sobre reações redox, potenciais de eletrodo e cálculos de força eletromotriz.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-custom p-4 mb-3 animate-fade delay-2">
+                        <div class="d-flex align-items-start">
+                            <div class="feature-icon me-3">
+                                <i class="bi bi-battery-charging"></i>
+                            </div>
+                            <div>
+                                <h3>Pilha de Daniell</h3>
+                                <p>Modelagem completa da pilha de Daniell com visualizações interativas dos processos químicos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-custom p-4 animate-fade delay-3">
+                        <div class="d-flex align-items-start">
+                            <div class="feature-icon me-3">
+                                <i class="bi bi-journal-text"></i>
+                            </div>
+                            <div>
+                                <h3>Resolução de Problemas</h3>
+                                <p>Ajude passo a passo na resolução de exercícios e problemas de eletroquímica.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <h2 class="mb-4 animate-fade"><i class="bi bi-graph-up text-danger me-2"></i> Dados Técnicos</h2>
+                    
+                    <div class="card card-custom p-4 animate-fade delay-2">
+                        <h3 class="mb-3">Especificações</h3>
+                        <ul class="list-unstyled">
+                            <li class="mb-3 d-flex">
+                                <i class="bi bi-check-circle-fill text-danger me-2 mt-1"></i>
+                                <span>Baseado em modelos de linguagem avançados com foco em química e física</span>
+                            </li>
+                            <li class="mb-3 d-flex">
+                                <i class="bi bi-check-circle-fill text-danger me-2 mt-1"></i>
+                                <span>Banco de dados especializado em eletroquímica com mais de 10.000 conceitos</span>
+                            </li>
+                            <li class="mb-3 d-flex">
+                                <i class="bi bi-check-circle-fill text-danger me-2 mt-1"></i>
+                                <span>Atualizações mensais de conteúdo e algoritmos</span>
+                            </li>
+                            <li class="mb-3 d-flex">
+                                <i class="bi bi-check-circle-fill text-danger me-2 mt-1"></i>
+                                <span>Suporte para múltiplos níveis de conhecimento, do básico ao avançado</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card card-custom p-4 mt-4 animate-fade delay-3">
+                        <h3 class="mb-3">Tecnologias Utilizadas</h3>
+                        <div class="row text-center">
+                            <div class="col-4 mb-3">
+                                <i class="bi bi-cpu text-danger" style="font-size: 2rem;"></i>
+                                <p class="mb-0">LLM Avançado</p>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <i class="bi bi-database text-danger" style="font-size: 2rem;"></i>
+                                <p class="mb-0">Base de Conhecimento</p>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <i class="bi bi-diagram-3 text-danger" style="font-size: 2rem;"></i>
+                                <p class="mb-0">Arquitetura Modular</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Demonstração -->
+    <section class="py-5 bg-dark">
+        <div class="container py-5 text-center">
+            <h2 class="display-5 mb-4 animate-fade">Quer experimentar nossos recursos?</h2>
+            <p class="lead mb-5 animate-fade delay-1">Acesse agora mesmo e comece a interagir com a DanielIA</p>
+            <a href="{{ url_for('main.chatbot') }}" class="btn btn-custom btn-lg animate-fade delay-2">Acessar o Chat</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2025 DanielIA. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/recursos.js') }}"></script>
+</body>
+</html>

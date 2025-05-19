@@ -1,0 +1,170 @@
+:root {
+    --bg-dark: #111;
+    --bg-darker: #000;
+    --accent-color: #dc3545;
+    --text-light: #f8f9fa;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.navbar-custom {
+    background-color: var(--bg-darker);
+    border-bottom: 1px solid #333;
+    padding: 1rem 0;
+}
+
+.navbar-toggler-custom {
+    background-color: var(--accent-color);
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+}
+
+.navbar-toggler-custom .navbar-toggler-icon {
+    filter: brightness(0) invert(1);
+    background-image: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar-toggler-custom .navbar-toggler-icon i {
+    font-size: 1.5rem;
+}
+
+.navbar-toggler-custom:focus {
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://source.unsplash.com/random/1920x1080/?contact,communication');
+    background-size: cover;
+    background-position: center;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    padding: 2rem;
+}
+
+.hero-section h1 {
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.card-custom {
+    background-color: var(--bg-darker);
+    border: 1px solid #333;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 0.5rem;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.contact-icon {
+    font-size: 1.75rem;
+    color: var(--accent-color);
+    margin-right: 1rem;
+}
+
+.social-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+footer {
+    background-color: var(--bg-darker);
+    border-top: 1px solid #333;
+    padding: 2rem 0;
+}
+
+/* Efeitos de animação */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+
+/* Formulário */
+.form-control, .form-select {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    border-color: #333;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+.transparent-toggler {
+    border: none !important;
+    background: transparent !important;
+    color: white !important;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.transparent-toggler:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    color: rgba(255, 255, 255, 1) !important;
+}
+.transparent-toggler:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+.transparent-toggler:active {
+    transform: scale(0.98);
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .border-end {
+        border-right: none !important;
+        border-bottom: 1px solid #333;
+        padding-bottom: 2rem;
+        margin-bottom: 2rem;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        height: 50vh;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .feature-icon {
+        font-size: 1.5rem;
+    }
+}

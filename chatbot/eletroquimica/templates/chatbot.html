@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PilhIA - Chatbot de Eletroquímica</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('main.static', filename='css/chatbot.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+    --bg-dark: #111;
+    --bg-darker: #000;
+    --accent-color: #dc3545;
+    --text-light: #f8f9fa;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+a{
+
+    text-decoration: none;
+}
+
+.container-fluid {
+    padding: 0 !important;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: var(--bg-darker);
+    border-right: 1px solid #333;
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    width: 260px;
+}
+
+/* Main Content */
+.content {
+    margin-left: 260px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-dark);
+}
+
+/* Chat Area */
+.chat-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background-color: var(--bg-dark);
+}
+
+/* Input Area */
+.input-area {
+    background-color: var(--bg-darker);
+    padding: 1rem;
+    border-top: 1px solid #333;
+}
+
+.input-area textarea {
+    resize: none;
+    padding: 0.75rem;
+    background-color: transparent;
+    border: 1px solid transparent;
+    overflow-y: hidden !important;
+    border-radius: 0.5rem;
+    outline: none;
+    color: var(--text-light);
+    width: 100%;
+}
+
+/* Messages */
+.message {
+    max-width: 85%;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease-out;
+    word-wrap: break-word;
+}
+
+.user-message {
+    margin-left: auto;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 1rem 1rem 0 1rem;
+}
+
+.bot-message {
+    margin-right: auto;
+    background-color: #2d2d2d;
+    color: white;
+    border-radius: 1rem 1rem 1rem 0;
+    padding: 1rem;
+}
+
+/* New Chat Button */
+.new-chat-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: calc(100% - 1rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.new-chat-btn:hover {
+    background-color: #c82333;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid #333;
+    }
+    
+    .content {
+        margin-left: 0 !important;
+        height: calc(100vh - 60px);
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+}
+
+.typing-indicator span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #999;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Send Button */
+#send-button {
+    background-color: var(--accent-color);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#send-button:hover {
+    background-color: #c82333;
+}
+
+/* Message styling */
+.message-content {
+    margin-bottom: 0.25rem;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    text-align: right;
+}
+
+.user-message .message-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.bot-message .message-time {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Chat history */
+.chat-history {
+    padding: 0.75rem 1rem;
+    color: #aaa;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.chat-history:hover {
+    background-color: #222;
+}
+
+.chat-history.active {
+    background-color: #333;
+}
+
+.chat-history-title {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.delete-chat-btn {
+    color: #dc3545;
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.chat-history:hover .delete-chat-btn {
+    opacity: 1;
+}
+
+/* Estilo para fórmulas LaTeX */
+.latex {
+    font-family: "Courier New", monospace;
+    background-color: #2d2d2d;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 1.1em;
+}
+
+/* Melhorias na mensagem */
+.message-content {
+    line-height: 1.6;
+}
+
+.message-content strong {
+    color: #f8f9fa;
+    font-weight: 600;
+}
+
+.message-content em {
+    color: #ddd;
+    font-style: italic;
+}
+
+/* Efeito hover nos botões de deletar */
+.delete-chat-btn:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s;
+}
+
+/* Estilos para fórmulas LaTeX */
+.latex-block {
+    display: block;
+    font-family: "Courier New", monospace;
+    background-color: #2d2d2d;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 1.2em;
+    overflow-x: auto;
+}
+
+.latex-inline {
+    font-family: "Courier New", monospace;
+    background-color: rgba(45, 45, 45, 0.5);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 1.1em;
+}
+
+/* Melhorias para listas */
+.message ul {
+    padding-left: 20px;
+    margin: 10px 0;
+}
+
+.message li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+/* Garante que o chat não suma ao recarregar */
+#chat-container {
+    min-height: 70vh;
+    background-color: var(--bg-dark);
+    transition: all 0.3s ease;
+}
+
+/* Estilo para mensagens persistentes */
+.message {
+    opacity: 1;
+    transition: opacity 0.5s;
+}
+
+/* Estilos para o modal de confirmação de exclusão */
+#confirm-delete {
+    display: none; /* Inicialmente escondido */
+    position: fixed; /* Ou 'absolute' se você quiser que ele role com a página */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente para escurecer o resto */
+    justify-content: center; /* Centraliza horizontalmente os filhos */
+    align-items: center; /* Centraliza verticalmente os filhos */
+    z-index: 1000; /* Garante que ele fique acima de outros elementos */
+}
+
+.confirm-delete-box {
+    background-color: #343a40; /* Cor de fundo da caixa do modal (a mesma do input-area) */
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    width: 80%; /* Largura da caixa do modal (ajuste conforme necessário) */
+    max-width: 400px; /* Largura máxima para telas maiores */
+}
+
+.confirm-delete-box h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #dc3545; /* Cor vermelha para o título de confirmação */
+}
+
+.confirm-delete-box p {
+    margin-bottom: 20px;
+}
+
+.confirm-delete-box .btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.confirm-delete-box .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+
+.confirm-delete-box .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.confirm-delete-box .btn:hover {
+    opacity: 0.9;
+}
+
+.confirm-delete-box .d-flex {
+    gap: 10px; /* Ajusta o espaçamento entre os botões */
+}
+
+.suggestions {
+    margin-top: 1.5rem !important; /* Aumenta um pouco o espaçamento do topo */
+    padding: 0.5rem; /* Adiciona um pequeno padding interno */
+}
+
+.suggestion-card {
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: #dc3545; /* Cor de fundo clara */
+}
+
+.suggestion-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+    background-color: #c82333; /* Cor de fundo levemente mais escura ao passar o mouse */
+}
+
+.suggestion-card .card-body {
+    padding: 1rem;
+    text-align: center; /* Centraliza o conteúdo do card */
+}
+
+.suggestion-card .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #333; /* Cor do título */
+}
+
+.suggestion-card .card-text {
+    font-size: 0.875rem;
+    color: white; /* Cor do texto pequeno */
+    margin-bottom: 0;
+}
+
+/* Estilos para o layout em colunas (Bootstrap já cuida disso, mas para referência) */
+.suggestions .row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.suggestions .col {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-bottom: 1rem; /* Espaçamento entre as linhas de cards */
+}
+
+.transparent-toggler {
+    border: none !important;
+    background: transparent !important;
+    color: white !important;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.transparent-toggler:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    color: rgba(255, 255, 255, 1) !important;
+}
+.transparent-toggler:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+.transparent-toggler:active {
+    transform: scale(0.98);
+}
+.message-time {
+    display: block; /* Para que a hora fique em sua própria linha */
+    font-size: 0.8em;
+    color: #aaa;
+    margin-bottom: 5px; /* Espaço entre a hora e a mensagem */
+}
+
+.user-message .message-time {
+    text-align: right; /* Alinha a hora à direita nas mensagens do usuário (opcional) */
+}
+
+/* Opcional: Adaptação para telas menores (se necessário) */
+@media (max-width: 575.98px) {
+    .suggestions .col {
+        margin-bottom: 0.75rem;
+    }
+}
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <div class="container-fluid p-0 flex-grow-1">
+
+
+<div class="container-fluid p-0">
+    <div class="sidebar">
+        <div class="d-flex justify-content-between align-items-center p-3">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('main.index') }}">
+                    <h2 class="m-0"><span class="text-white">Pilh</span><span class="text-danger">IA</span></h2>
+                </a>
+            </div>
+            <button class="transparent-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarContent">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+        <div class="sidebar-content" id="sidebarContent">
+            <button id="new-chat-btn" class="new-chat-btn">
+                <i class="bi bi-plus-lg"></i> Nova conversa
+            </button>
+            <div id="chat-history-container">
+                    </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="chat-area" id="chat-container">
+            <div class="text-center mt-5 pt-5">
+                <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+            </div>
+        </div>
+        <div class="input-area">
+            <div class="d-flex align-items-end gap-2 bg-dark rounded-3 p-2">
+                <textarea id="user-input" class="flex-grow-1" placeholder="Digite sua mensagem..." rows="1"></textarea>
+                <button id="send-button" class="btn btn-danger rounded-circle p-2" style="width: 42px; height: 42px">
+                    <i class="bi bi-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="confirm-delete" class="confirm-delete" style="display: none;">
+    <div class="confirm-delete-box">
+        <h4>Tem certeza que deseja apagar esta conversa?</h4>
+        <p>Esta ação não pode ser desfeita.</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <button id="cancel-delete" class="btn btn-secondary">Cancelar</button>
+            <button id="confirm-delete-btn" class="btn btn-danger">Apagar</button>
+        </div>
+    </div>
+</div>
+    </div>
+    </body>
+</html>
+    <!--<script src="{{ url_for('main.static', filename='js/chatbot.js') }}"></script> -->
+    <script>
+        // Função para alternar a sidebar em dispositivos móveis
+        function toggleSidebar() {
+            const sidebarContent = document.getElementById('sidebarContent');
+            sidebarContent.classList.toggle('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const chatHistoryContainer = document.getElementById('chat-history-container');
+            const confirmDeleteModal = document.getElementById('confirm-delete');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete');
+
+            // Estado da aplicação
+            let currentChatId = localStorage.getItem('currentChatId') || ('temp-' + Date.now().toString());
+            let chats = JSON.parse(localStorage.getItem('danielia-chats')) || {};
+            let chatToDelete = null;
+
+            // Inicialização
+            loadChat(currentChatId);
+            loadChatHistory();
+
+            // Função para adicionar as sugestões ao chat
+            function addSuggestionsToChat() {
+                const suggestionsDiv = document.createElement('div');
+                suggestionsDiv.className = 'suggestions mt-5';
+                suggestionsDiv.innerHTML = `
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 justify-content-center">
+                        <div class="col-md-4">
+                            <div class="card suggestion-card" data-suggestion="Gerar questões do ENEM sobre eletroquímica">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Questões ENEM</h6>
+                                    <p class="card-text small">Gera questões no estilo ENEM sobre eletroquímica</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card suggestion-card" data-suggestion="Quero ajuda para entender [problema]">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Resolver Dúvidas</h6>
+                                    <p class="card-text small">Tire dúvidas sobre determinado assunto do campo de eletroquímica.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card suggestion-card" data-suggestion="Simule uma pilha de [eletrodo 1] e [eletrodo 2] e calcule sua voltagem.">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Pilha Virtual</h6>
+                                    <p class="card-text small">Monte uma pilha virtual e calcule a voltagem.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card suggestion-card" data-suggestion="Gerar um flashcard com trechos da base de dados sobre eletroquímica">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Flashcard</h6>
+                                    <p class="card-text small">Crie um cartão de estudo rápido com informações sobre eletroquímica</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card suggestion-card" data-suggestion="Explicar eletroquímica fazendo analogias com [insira]">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Analogias</h6>
+                                    <p class="card-text small">Explique eletroquímica fazendo analogias com determinado tema ou assunto</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const existingSuggestions = chatContainer.querySelector('.suggestions');
+                if (existingSuggestions) {
+                    chatContainer.removeChild(existingSuggestions);
+                }
+                chatContainer.appendChild(suggestionsDiv);
+
+                const suggestionCards = chatContainer.querySelectorAll('.suggestion-card');
+                suggestionCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        const suggestionText = card.getAttribute('data-suggestion');
+                        userInput.value = suggestionText;
+                        userInput.focus();
+                    });
+                });
+            }
+
+            // Função para remover as sugestões do chat
+            function removeSuggestionsFromChat() {
+                const suggestionsDiv = chatContainer.querySelector('.suggestions');
+                if (suggestionsDiv) {
+                    chatContainer.removeChild(suggestionsDiv);
+                }
+            }
+
+            // Auto-ajuste da altura do textarea
+            userInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+
+            // Funções auxiliares
+            function saveChats() {
+                localStorage.setItem('danielia-chats', JSON.stringify(chats));
+            }
+
+            function loadChatHistory() {
+                chatHistoryContainer.innerHTML = '';
+                const sortedChats = Object.values(chats).sort((a, b) =>
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+
+                sortedChats.forEach(chat => {
+                    const chatElement = document.createElement('div');
+                    chatElement.className = 'chat-history';
+                    chatElement.dataset.chatId = chat.id;
+
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'chat-history-title';
+                    titleSpan.textContent = chat.title;
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-chat-btn';
+                    deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showDeleteConfirmation(chat.id);
+                    });
+
+                    chatElement.appendChild(titleSpan);
+                    chatElement.appendChild(deleteBtn);
+
+                    chatElement.addEventListener('click', () => {
+                        loadChat(chat.id);
+                        if (window.innerWidth <= 991.98) {
+                            document.getElementById('sidebarContent').classList.remove('show');
+                        }
+                    });
+
+                    chatHistoryContainer.appendChild(chatElement);
+                });
+            }
+
+            function showDeleteConfirmation(chatId) {
+                chatToDelete = chatId;
+                confirmDeleteModal.style.display = 'flex';
+            }
+
+            function deleteChat() {
+                if (!chatToDelete) return;
+
+                if (currentChatId === chatToDelete) {
+                    currentChatId = 'temp-' + Date.now().toString();
+                    chatContainer.innerHTML = `
+                        <div class="text-center mt-5 pt-5">
+                            <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                        </div>`;
+                    localStorage.setItem('currentChatId', currentChatId);
+                    addSuggestionsToChat();
+                }
+
+                delete chats[chatToDelete];
+                saveChats();
+                loadChatHistory();
+                confirmDeleteModal.style.display = 'none';
+                chatToDelete = null;
+            }
+
+            function loadChat(chatId) {
+                currentChatId = chatId;
+                localStorage.setItem('currentChatId', currentChatId);
+                chatContainer.innerHTML = '';
+                removeSuggestionsFromChat();
+
+                const chat = chats[chatId];
+                if (!chat || chat.messages.length === 0) {
+                    // Chat novo ou vazio: exibir a mensagem inicial e as sugestões
+                    chatContainer.innerHTML = `
+                        <div class="text-center mt-5 pt-5">
+                            <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                        </div>`;
+                    addSuggestionsToChat();
+                } else {
+                    // Chat com mensagens: carregar as mensagens
+                    chat.messages.forEach(msg => {
+                        addMessage(msg.content, msg.isUser, false);
+                    });
+                }
+
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            function createNewChat() {
+                currentChatId = 'temp-' + Date.now().toString();
+                localStorage.setItem('currentChatId', currentChatId);
+                chatContainer.innerHTML = `
+                    <div class="text-center mt-5 pt-5">
+                        <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+                    </div>`;
+                addSuggestionsToChat();
+                if (window.innerWidth <= 991.98) {
+                    document.getElementById('sidebarContent').classList.remove('show');
+                }
+                userInput.focus();
+            }
+
+            function addMessage(content, isUser = false, saveToHistory = true) {
+                const timestamp = new Date();
+                const hours = timestamp.getHours().toString().padStart(2, '0');
+                const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+                const timeString = `${hours}:${minutes}`;
+
+                if (isUser && currentChatId.startsWith('temp-')) {
+                    const newChatId = Date.now().toString();
+                    chats[newChatId] = {
+                        id: newChatId,
+                        title: content.length > 30 ? content.substring(0, 30) + '...' : content,
+                        messages: [{
+                            content,
+                            isUser: true,
+                            timestamp: timestamp.toISOString()
+                        }],
+                        createdAt: timestamp.toISOString()
+                    };
+                    currentChatId = newChatId;
+                    localStorage.setItem('currentChatId', currentChatId);
+                    saveChats();
+                    loadChatHistory();
+                }
+                else if (saveToHistory && chats[currentChatId]) {
+                    const chat = chats[currentChatId];
+                    chat.messages.push({
+                        content,
+                        isUser,
+                        timestamp: timestamp.toISOString()
+                    });
+
+                    if (isUser && chat.messages.length === 1) {
+                        chat.title = content.length > 30 ? content.substring(0, 30) + '...' : content;
+                    }
+                    saveChats();
+                    loadChatHistory();
+                }
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message p-3 ${isUser ? 'user-message' : 'bot-message'}`;
+
+                // Adiciona a hora da mensagem
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'message-time';
+                timeSpan.textContent = timeString;
+                messageDiv.appendChild(timeSpan);
+
+                // Divida o conteúdo por quebras de linha e crie parágrafos
+                const lines = content.split('\n');
+                lines.forEach(line => {
+                    const paragraph = document.createElement('p');
+                    paragraph.textContent = line;
+                    messageDiv.appendChild(paragraph);
+                });
+
+                removeSuggestionsFromChat();
+                const placeholder = chatContainer.querySelector('.text-center');
+                if (placeholder) {
+                    chatContainer.removeChild(placeholder);
+                }
+
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            function showTyping() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message p-3 bot-message typing-indicator';
+                typingDiv.innerHTML = '<span></span><span></span><span></span>';
+                typingDiv.id = 'typing-indicator';
+                chatContainer.appendChild(typingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            async function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                // Desabilita o input e armazena o texto original
+                userInput.disabled = true;
+                const originalText = userInput.value;
+                userInput.value = 'Enviando...';
+                sendButton.disabled = true;
+
+
+                addMessage(message, true);
+                userInput.style.height = 'auto';
+
+                showTyping();
+
+                try {
+                    let responseData;
+                    if (message.toLowerCase() === 'gerar questões do enem sobre eletroquimica') {
+                        // Chamada para uma função específica para gerar questões do ENEM
+                        responseData = await getEnemQuestions();
+                    } else {
+                        // Chamada normal para o chatbot
+                        const response = await fetch('/query', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ query: message, conversation_id: currentChatId }),
+                        });
+                        responseData = await response.json();
+                    }
+
+                    document.getElementById('typing-indicator')?.remove();
+
+                    // Reabilita o input e restaura o texto original (limpo)
+                    userInput.disabled = false;
+                    userInput.value = '';
+                    userInput.focus();
+
+                    // Reabilita o botão
+                    sendButton.disabled = false;
+                    sendButton.innerHTML = '<i class="bi bi-arrow-up"></i>';
+
+                    if (responseData.error) {
+                        addMessage(`⚠️ Erro: ${responseData.error}`);
+                    } else if (responseData.enem_questions) {
+                        // Se a resposta contiver questões do ENEM
+                        addMessage("Aqui estão algumas questões do ENEM sobre eletroquímica:");
+                        responseData.enem_questions.forEach((question, index) => {
+                            addMessage(`**Questão ${index + 1}:** ${question}`);
+                        });
+                    } else {
+                        addMessage(responseData.answer);
+                    }
+
+                } catch (error) {
+                    console.error('Erro:', error);
+                    const typing = document.getElementById('typing-indicator');
+                    if (typing) typing.remove();
+
+                    // Reabilita o input e restaura o texto original em caso de erro
+                    userInput.disabled = false;
+                    userInput.value = originalText;
+                    userInput.focus();
+
+                    // Reabilita o botão em caso de erro
+                    sendButton.disabled = false;
+                    sendButton.innerHTML = '<i class="bi bi-arrow-up"></i>';
+
+                    addMessage('⚠️ Não foi possível conectar ao servidor ou ler o arquivo de questões.');
+                }
+            }
+
+            async function getEnemQuestions() {
+                try {
+                    const response = await fetch('/get_enem_questions'); // Nova rota no Flask
+                    if (!response.ok) {
+                        console.error(`Erro ao buscar questões do ENEM: ${response.status}`);
+                        return { error: 'Erro ao buscar questões do ENEM.' };
+                    }
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    console.error('Erro ao buscar questões do ENEM:', error);
+                    return { error: 'Erro ao buscar questões do ENEM.' };
+                }
+            }
+
+            newChatBtn.addEventListener('click', createNewChat);
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            confirmDeleteBtn.addEventListener('click', deleteChat);
+            cancelDeleteBtn.addEventListener('click', () => {
+                confirmDeleteModal.style.display = 'none';
+                chatToDelete = null;
+            });
+        });
+    </script>
