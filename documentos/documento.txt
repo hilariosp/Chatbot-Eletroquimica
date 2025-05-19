@@ -1,0 +1,176 @@
+ELETROQUÍMICA
+
+1. Fundamentos da Eletroquímica
+
+A eletroquímica estuda a relação entre reações químicas e energia elétrica através de processos chamados reações de oxirredução (redox). Essas reações envolvem sempre a transferência de elétrons entre substâncias.
+
+1.1 Reações de Oxirredução
+
+Toda reação redox possui dois componentes essenciais:
+
+Oxidação: Processo onde uma substância perde elétrons
+
+Aumenta seu número de oxidação
+
+Exemplo: Zinco metálico (Zn) se transforma em íon zinco (Zn2+) liberando 2 elétrons
+
+Redução: Processo onde uma substância ganha elétrons
+
+Diminui seu número de oxidação
+
+Exemplo: Íon cobre (Cu2+) recebe 2 elétrons e vira cobre metálico (Cu)
+
+2. Tabela Completa de Potenciais Padrão de Redução
+
+Esta tabela mostra a tendência de cada substância em ganhar elétrons (redução) em condições padrão (25°C, 1 atm, concentração 1 mol/L):
+
+Semi-reação de redução	Potencial (V)
+Li+ + e- → Li(s)	-3,04
+K+ + e- → K(s)	-2,92
+Ca2+ + 2e- → Ca(s)	-2,87
+Na+ + e- → Na(s)	-2,71
+Mg2+ + 2e- → Mg(s)	-2,37
+Al3+ + 3e- → Al(s)	-1,66
+Zn2+ + 2e- → Zn(s)	-0,76
+Fe2+ + 2e- → Fe(s)	-0,44
+Ni2+ + 2e- → Ni(s)	-0,25
+Sn2+ + 2e- → Sn(s)	-0,14
+Pb2+ + 2e- → Pb(s)	-0,13
+2H+ + 2e- → H2(g)	0,00
+Cu2+ + 2e- → Cu(s)	+0,34
+Ag+ + e- → Ag(s)	+0,80
+Au3+ + 3e- → Au(s)	+1,50
+MnO4- + 8H+ + 5e- → Mn2+ + 4H2O	+1,51
+Cr2O72- + 14H+ + 6e- → 2Cr3+ + 7H2O	+1,33
+3. Cálculo de Potenciais e Espontaneidade
+
+Para determinar se uma reação redox ocorre espontaneamente:
+
+Identifique as semi-reações de oxidação e redução
+
+Consulte os potenciais padrão na tabela
+
+Calcule a diferença de potencial (ΔE°)
+
+ΔE° = E°red(cátodo) - E°red(ânodo)
+
+Se ΔE° > 0: Reação espontânea
+Se ΔE° < 0: Reação não espontânea (precisa de energia externa)
+
+Exemplo Prático:
+
+Reação entre dicromato (Cr2O72-) e ferro (Fe2+):
+
+Redução do dicromato: +1,33 V
+
+Oxidação do Fe2+ para Fe3+: -0,77 V
+
+ΔE° = 1,33 - (-0,77) = +0,56 V (reação espontânea)
+
+4. Pilhas e Eletrólise
+
+4.1 Pilhas (Células Galvânicas)
+
+Dispositivos que convertem energia química em elétrica através de reações espontâneas.
+
+Exemplo clássico: Pilha de Daniell (Zn-Cu)
+
+Ânodo (Zn): Zn → Zn2+ + 2e- (E°oxi = +0,76 V)
+
+Cátodo (Cu): Cu2+ + 2e- → Cu (E°red = +0,34 V)
+
+Diferença de potencial: ΔE° = 1,10 V
+
+4.2 Eletrólise
+
+Processo não espontâneo que usa energia elétrica para provocar reações redox. Segue as Leis de Faraday:
+
+A massa de substância produzida é proporcional à quantidade de carga elétrica
+
+Massas equivalentes de diferentes elementos são produzidas pela mesma carga
+
+Aplicações industriais:
+
+Produção de alumínio
+
+Refinamento de metais
+
+Galvanoplastia
+
+5. Baterias e Acumuladores
+
+Tipo	Reações	Características
+Chumbo-Ácido	Pb + PbO2 + 2H2SO4 → 2PbSO4 + 2H2O	Usada em automóveis
+Li-Íon	LiCoO2 + C ↔ Li1-xCoO2 + LixC	Eletrônicos portáteis
+NiMH	NiOOH + MH ↔ Ni(OH)2 + M	Recarregável, menos tóxica
+6. Corrosão e Proteção
+
+Mecanismos de corrosão:
+
+Corrosão úmida (com eletrólitos)
+
+Corrosão galvânica (contato entre metais diferentes)
+
+Métodos de proteção:
+
+Galvanização (revestimento com zinco)
+
+Proteção catódica
+
+Revestimentos protetores
+
+7. Equações Fundamentais
+
+Equação de Nernst:
+E = E° - (0,0592/n) * log Q
+
+Relação com Energia Livre:
+ΔG° = -nFE°
+
+Constante de Equilíbrio:
+log K = (nE°)/0,0592
+
+8. Estratégias para Resolução de Problemas
+
+Sempre comece identificando as semi-reações de oxidação e redução
+
+Consulte a tabela de potenciais padrão
+
+Balanceie o número de elétrons transferidos
+
+Para meios ácidos ou básicos:
+
+Ácido: balanceie com H+ e H2O
+
+Básico: balanceie com OH- e H2O
+
+Calcule o potencial total para verificar a espontaneidade
+
+9. Aplicações Tecnológicas Modernas
+
+Células a combustível
+
+Supercapacitores
+
+Sensores eletroquímicos
+
+Eletrossíntese de compostos orgânicos
+
+10. Impacto Ambiental e Sustentabilidade
+
+Desafios:
+
+Contaminação por metais pesados
+
+Descarte de baterias
+
+Consumo de recursos
+
+Soluções:
+
+Reciclagem de componentes
+
+Desenvolvimento de baterias mais limpas
+
+Legislação específica para descarte
+
