@@ -1,4 +1,3 @@
-<<<<<<< HEAD:app.py
 from flask import Flask, request, jsonify, render_template, Blueprint
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -258,7 +257,6 @@ def clear_history():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-=======
 from flask import Flask
 from flask_cors import CORS
 from eletroquimica.app.llm_setup import configure_llm, load_documents
@@ -291,4 +289,3 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
->>>>>>> b042eb4288c84fa3d7bd5d67abc6047590cd3417:chatbot/app.py
