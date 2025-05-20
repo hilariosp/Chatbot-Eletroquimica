@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, Blueprint
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, Document
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.openrouter import OpenRouter
 from flask_cors import CORS
@@ -40,7 +40,7 @@ app.register_blueprint(public_bp)
 
 # Configuração do OpenRouter
 Settings.llm = OpenRouter(
-    api_key="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",
+    api_key="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",
     model="meta-llama/llama-3.3-8b-instruct:free",
     api_base="https://openrouter.ai/api/v1",
     temperature=0.7,
@@ -61,7 +61,7 @@ Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 - Se fornecida documentação de referência, baseie-se nela para responder
 - Se alguém perguntar o teu nome, diga que é PilhIA
 - Se não souber a resposta ou a pergunta estiver incompleta como por exemplo 'o que é a', diga apenas "Não sei responder isso"
-- Se for perguntado algo fora de eletroquimica, baterias, eletrolise e pilha de daniell, diga que não pode responder a pergunta por estar fora do assunto
+- Se for perguntado algo fora de eletroquimica, baterias, eletrolise e pilha de daniell, diga que não pode responder a pergunta por estar fora do assunto, mas se sugerir uma explicação usando analogias mas que ainda seja sobre eletroquimica aceite.
 - Se pedir questões sobre eletroquimica, você deve pegar elas diretamente da pasta 'questoes', e soltar apenas uma por vez.
 2. FORMATO:
 - Use parágrafos curtos e marcadores quando apropriado
@@ -83,32 +83,81 @@ Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 CONVERSATION_HISTORY = deque(maxlen=5)  # Mantém as últimas 5 interações
 
 # Verificação e criação do diretório de documentos
-doc_path = "documentos"
+doc_path = "documentos/basededados"
 try:
     if not Path(doc_path).exists():
         Path(doc_path).mkdir(exist_ok=True)
         print(f"⚠️ Diretório '{doc_path}' criado (vazio)")
 
-    documents = SimpleDirectoryReader(doc_path).load_data()
-    index = VectorStoreIndex.from_documents(documents)
+    documents = []
+    # Carrega outros documentos de texto
+    for file in os.listdir(doc_path):
+        file_path = os.path.join(doc_path, file)
+        if file.endswith(".txt") and "tabela_potenciais" not in file:
+            print(f"Tentando ler o arquivo diretamente: {file_path}")
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                if content:
+                    doc = Document(text=content, id_=file_path)
+                    documents.append(doc)
+                    print(f"Arquivo '{file}' lido diretamente. Conteúdo carregado.")
+                else:
+                    print(f"⚠️ Arquivo '{file}' está vazio.")
+            except Exception as e:
+                print(f"⚠️ Falha ao ler arquivo '{file}' diretamente com erro: {e}. Skipping...")
 
-    # Configuração correta do query engine com system_prompt
-    query_engine = index.as_query_engine(
-        streaming=True,
-        similarity_top_k=3,
-        node_postprocessors=[],
-        llm=Settings.llm
-    )
 
-    # Definir o system_prompt no LLM
-    Settings.llm.system_prompt = SYSTEM_PROMPT
+    # Carrega a tabela de potenciais do arquivo JSON
+    def carregar_tabela_potenciais_json(file_path):
+        """Carrega a tabela de potenciais de um arquivo JSON."""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                potenciais = {}
+                for item in data:
+                    metal = item.get('metal')
+                    potencial = item.get('potencial')
+                    if metal and potencial is not None:
+                        potenciais[metal.lower()] = potencial
+                return potenciais
+        except FileNotFoundError:
+            print(f"⚠️ Arquivo '{file_path}' não encontrado.")
+            return {}
+        except json.JSONDecodeError as e:
+            print(f"⚠️ Erro ao decodificar JSON: {e}")
+            return {}
+        return {}
+
+    tabelas_path = "documentos/tabelas"  # Nova linha: define o caminho da pasta tabelas
+    tabela_path_json = os.path.join(tabelas_path, "tabela_potenciais.json") # Linha modificada
+
+    tabela_potenciais_json = carregar_tabela_potenciais_json(tabela_path_json)
+
+    # Cria o índice com todos os documentos carregados
+    if documents:
+        index = VectorStoreIndex.from_documents(documents)
+
+        # Configuração correta do query engine com system_prompt
+        query_engine = index.as_query_engine(
+            streaming=False,  # Desabilita o streaming para obter a resposta completa para a explicação
+            similarity_top_k=3,
+            node_postprocessors=[],
+            llm=Settings.llm
+        )
+
+        # Definir o system_prompt no LLM
+        Settings.llm.system_prompt = SYSTEM_PROMPT
+    else:
+        print("⚠️ Nenhum documento de texto carregado. O query engine não será inicializado.")
+        query_engine = None
 
 except Exception as e:
     print(f"⚠️ Erro ao carregar documentos: {str(e)}")
     query_engine = None
 
 # Verificação e criação do diretório de questões
-questoes_path = "questoes"
+questoes_path = "documentos/questoes"
 if not Path(questoes_path).exists():
     Path(questoes_path).mkdir(exist_ok=True)
     print(f"⚠️ Diretório '{questoes_path}' criado (vazio)")
@@ -171,8 +220,50 @@ def build_prompt_with_history(user_input):
 
     return history_str
 
+def extrair_tema_analogia(texto):
+    """Tenta extrair o tema para a analogia da frase."""
+    partes = texto.lower().split("analogias com")
+    if len(partes) > 1:
+        return partes[1].strip().replace('[', '').replace(']', '')
+    return None
+
+def explicar_com_analogia(tema):
+    """Gera uma explicação de eletroquímica usando uma analogia (requer LLM)."""
+    prompt_analogia = f"Explique os conceitos básicos de eletroquímica usando uma analogia com '{tema}'. Seja conciso e claro."
+    if query_engine:
+        response = query_engine.query(prompt_analogia)
+        return str(response)
+    else:
+        return "Não foi possível gerar analogias no momento."
+
+def calcular_voltagem_pilha_json(eletrodos_str):
+    try:
+        eletrodos = [eletrodo.strip().lower() for eletrodo in eletrodos_str.split(' e ')]
+        print(f"Eletrodos: {eletrodos}")
+        if len(eletrodos) != 2:
+            return "Por favor, especifique dois eletrodos separados por 'e'."
+
+        potenciais = {}
+        for eletrodo in eletrodos:
+            if eletrodo in tabela_potenciais_json:
+                potenciais[eletrodo] = tabela_potenciais_json[eletrodo]
+                print(f"Potencial encontrado para {eletrodo}: {potenciais[eletrodo]}")
+            else:
+                return f"Não encontrei o potencial padrão para '{eletrodo}'. Verifique a grafia."
+
+        catodo = max(potenciais, key=potenciais.get)
+        anodo = min(potenciais, key=potenciais.get)
+        voltagem = potenciais[catodo] - potenciais[anodo]
+        resultado = f"A voltagem da pilha com {catodo.capitalize()} (cátodo) e {anodo.capitalize()} (ânodo) é de {voltagem:.2f} V."
+        print(f"Resultado: {resultado}")
+        return resultado
+
+    except Exception as e:
+        return f"Erro ao calcular a voltagem: {str(e)}"
+
 @app.route('/query', methods=['POST'])
 def handle_query():
+    print("Rota /query acessada!") # Verificamos que esta linha está sendo executada
     global current_question_data
     try:
         if not request.is_json:
@@ -184,7 +275,14 @@ def handle_query():
         if not user_input:
             return jsonify({'error': 'Query cannot be empty'}), 400
 
-        if "gerar questões" in user_input:
+        if "calcular a voltagem de uma pilha de" in user_input:
+            print("Condição 'calcular a voltagem' atendida!")
+            eletrodos = user_input.split("de uma pilha de")[1].strip()
+            voltagem_info = calcular_voltagem_pilha_json(eletrodos)
+            print(f"Valor de voltagem_info antes do jsonify: '{voltagem_info}'")
+            CONVERSATION_HISTORY.append((user_input, voltagem_info))
+            return jsonify({'answer': voltagem_info})
+        elif "gerar questões" in user_input or "questões enem" in user_input.lower():
             if formatted_questions_list:
                 current_question_data = random.choice(formatted_questions_list)
                 response = current_question_data['pergunta']
@@ -194,6 +292,23 @@ def handle_query():
                 response = "Não há questões formatadas salvas na pasta."
                 CONVERSATION_HISTORY.append((user_input, response))
                 return jsonify({'answer': response})
+        elif user_input.lower().startswith("quero ajuda para entender"):
+            full_prompt = build_prompt_with_history(user_input)
+            resposta = query_engine.query(full_prompt)
+            resposta_str = str(resposta)
+            if not resposta_str or "não sei responder isso" in resposta_str.lower() or "não tenho informações suficientes" in resposta_str.lower():
+                return jsonify({'answer': ''})
+            else:
+                CONVERSATION_HISTORY.append((user_input, resposta_str))
+                return jsonify({'answer': resposta_str})
+        elif "explicar eletroquímica fazendo analogias com" in user_input.lower():
+            tema_analogia = extrair_tema_analogia(user_input)
+            if tema_analogia:
+                explicacao = explicar_com_analogia(tema_analogia)
+                CONVERSATION_HISTORY.append((user_input, explicacao))
+                return jsonify({'answer': explicacao})
+            else:
+                return jsonify({'answer': "Por favor, especifique o tema para a analogia."})
         elif current_question_data:
             user_answer = user_input
             correct_answer = current_question_data['resposta_correta']
@@ -201,12 +316,17 @@ def handle_query():
 
             if query_engine:
                 if user_answer == correct_answer:
-                    explanation_prompt = f"Explique por que a resposta '{correct_answer.upper()}' está correta para a seguinte questão: '{question_text}'"
+                    explanation_prompt = f"Explique em detalhes por que a resposta '({correct_answer.upper()})' está correta para a seguinte questão: '{question_text}'"
                 else:
-                    explanation_prompt = f"Explique qual é a resposta correta para a seguinte questão: '{question_text}'. A resposta correta é '{correct_answer.upper()}'."
+                    explanation_prompt = f"Explique em detalhes qual é a resposta correta para a seguinte questão: '{question_text}'. A resposta correta é '({correct_answer.upper()})'."
 
+                print(f"Prompt de explicação: {explanation_prompt}") # Log da prompt
                 explanation_response = query_engine.query(explanation_prompt)
-                explanation = str(explanation_response)
+                explanation = str(explanation_response).strip() # Remove espaços em branco extras
+                print(f"Resposta de explicação bruta: '{explanation}'") # Log da resposta bruta
+
+                if not explanation or "não sei responder isso" in explanation.lower() or "não tenho informações suficientes" in explanation.lower():
+                    explanation = "" # Define a explicação como vazia explicitamente
             else:
                 explanation = "Não foi possível gerar uma explicação no momento."
 
@@ -257,35 +377,3 @@ def clear_history():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-from flask import Flask
-from flask_cors import CORS
-from eletroquimica.app.llm_setup import configure_llm, load_documents
-from eletroquimica.app.main import main_bp
-from eletroquimica.app.api import api_bp
-
-def create_app():
-    app = Flask(__name__)
-    CORS(app)
-
-    # Configurações
-    app.config['SECRET_KEY'] = 'sua_chave_secreta'
-
-    # Configura IA
-    if not configure_llm():
-        raise RuntimeError("Erro na configuração do LLM")
-
-    app.query_engine = load_documents()  # Disponibiliza o query_engine no app
-
-    # Se o query_engine não for carregado corretamente, lançar erro
-    if not app.query_engine:
-        raise RuntimeError("Erro ao carregar documentos e criar o query engine.")
-
-    # Registra Blueprints
-    app.register_blueprint(main_bp)
-    app.register_blueprint(api_bp, url_prefix='/api')
-
-    return app
-
-if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True)

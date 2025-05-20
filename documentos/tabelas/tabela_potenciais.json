@@ -1,0 +1,192 @@
+[
+  {
+    "metal": "Flúor",
+    "semirreacao": "F₂ + 2e⁻ → 2F⁻",
+    "potencial": 2.87
+  },
+  {
+    "metal": "Permanganato (em meio ácido)",
+    "semirreacao": "MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O",
+    "potencial": 1.51
+  },
+  {
+    "metal": "Manganês",
+    "semirreacao": "MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O",
+    "potencial": 1.51
+  },
+  {
+    "metal": "Ouro (III)",
+    "semirreacao": "Au³⁺ + 3e⁻ → Au",
+    "potencial": 1.50
+  },
+  {
+    "metal": "Cobalto (III)",
+    "semirreacao": "Co³⁺ + e⁻ → Co²⁺",
+    "potencial": 1.82
+  },
+  {
+    "metal": "Cloro",
+    "semirreacao": "Cl₂ + 2e⁻ → 2Cl⁻",
+    "potencial": 1.36
+  },
+  {
+    "metal": "Oxigênio (em meio ácido)",
+    "semirreacao": "O₂ + 4H⁺ + 4e⁻ → 2H₂O",
+    "potencial": 1.23
+  },
+  {
+    "metal": "Bromo",
+    "semirreacao": "Br₂ + 2e⁻ → 2Br⁻",
+    "potencial": 1.07
+  },
+  {
+    "metal": "Prata (I)",
+    "semirreacao": "Ag⁺ + e⁻ → Ag",
+    "potencial": 0.80
+  },
+  {
+    "metal": "Ferro (III)",
+    "semirreacao": "Fe³⁺ + e⁻ → Fe²⁺",
+    "potencial": 0.77
+  },
+  {
+    "metal": "Mercúrio (I)",
+    "semirreacao": "Hg₂²⁺ + 2e⁻ → 2Hg",
+    "potencial": 0.79
+  },
+  {
+    "metal": "Mercúrio",
+    "semirreacao": "Hg₂²⁺ + 2e⁻ → 2Hg",
+    "potencial": 0.79
+  },
+  {
+    "metal": "Dióxido de manganês",
+    "semirreacao": "MnO₂ + 4H⁺ + 2e⁻ → Mn²⁺ + 2H₂O",
+    "potencial": 1.23
+  },
+  {
+    "metal": "Iodo",
+    "semirreacao": "I₂ + 2e⁻ → 2I⁻",
+    "potencial": 0.54
+  },
+  {
+    "metal": "Cobre (II)",
+    "semirreacao": "Cu²⁺ + 2e⁻ → Cu",
+    "potencial": 0.34
+  },
+  {
+    "metal": "Cobre (I)",
+    "semirreacao": "Cu⁺ + e⁻ → Cu",
+    "potencial": 0.52
+  },
+  {
+  "metal": "cobre",
+  "semirreacao": "Cu²⁺ + 2e⁻ → Cu",
+  "potencial": 0.34 
+  },
+  {
+    "metal": "Hidrogênio (padrão)",
+    "semirreacao": "2H⁺ + 2e⁻ → H₂",
+    "potencial": 0.00
+  },
+  {
+    "metal": "Chumbo (II)",
+    "semirreacao": "Pb²⁺ + 2e⁻ → Pb",
+    "potencial": -0.13
+  },
+  {
+    "metal": "Chumbo",
+    "semirreacao": "Pb²⁺ + 2e⁻ → Pb",
+    "potencial": -0.13
+  },
+  {
+    "metal": "Níquel (II)",
+    "semirreacao": "Ni²⁺ + 2e⁻ → Ni",
+    "potencial": -0.25
+  },
+  {
+    "metal": "Cobalto (II)",
+    "semirreacao": "Co²⁺ + 2e⁻ → Co",
+    "potencial": -0.28
+  },
+  {
+    "metal": "Cobalto",
+    "semirreacao": "Co²⁺ + 2e⁻ → Co",
+    "potencial": -0.28
+  },
+  {
+    "metal": "Estanho (II)",
+    "semirreacao": "Sn²⁺ + 2e⁻ → Sn",
+    "potencial": -0.14
+  },
+  {
+    "metal": "Estanho",
+    "semirreacao": "Sn²⁺ + 2e⁻ → Sn",
+    "potencial": -0.14
+  },
+  {
+    "metal": "Ferro (II)",
+    "semirreacao": "Fe²⁺ + 2e⁻ → Fe",
+    "potencial": -0.44
+  },
+  {
+    "metal": "Ferro",
+    "semirreacao": "Fe²⁺ + 2e⁻ → Fe",
+    "potencial": -0.44
+  },
+  {
+    "metal": "Zinco",
+    "semirreacao": "Zn²⁺ + 2e⁻ → Zn",
+    "potencial": -0.76
+  },
+  {
+    "metal": "Cromo (III)",
+    "semirreacao": "Cr³⁺ + 3e⁻ → Cr",
+    "potencial": -0.74
+  },
+  {
+    "metal": "Cromo",
+    "semirreacao": "Cr³⁺ + 3e⁻ → Cr",
+    "potencial": -0.74
+  },
+  {
+    "metal": "Crômio",
+    "semirreacao": "Cr³⁺ + 3e⁻ → Cr",
+    "potencial": -0.74
+  },
+  {
+    "metal": "Cádmio",
+    "semirreacao": "Cd²⁺ + 2e⁻ → Cd",
+    "potencial": -0.40
+  },
+  {
+    "metal": "Alumínio",
+    "semirreacao": "Al³⁺ + 3e⁻ → Al",
+    "potencial": -1.66
+  },
+  {
+    "metal": "Magnésio",
+    "semirreacao": "Mg²⁺ + 2e⁻ → Mg",
+    "potencial": -2.37
+  },
+  {
+    "metal": "Sódio",
+    "semirreacao": "Na⁺ + e⁻ → Na",
+    "potencial": -2.71
+  },
+  {
+    "metal": "Cálcio",
+    "semirreacao": "Ca²⁺ + 2e⁻ → Ca",
+    "potencial": -2.87
+  },
+  {
+    "metal": "Potássio",
+    "semirreacao": "K⁺ + e⁻ → K",
+    "potencial": -2.92
+  },
+  {
+    "metal": "Lítio",
+    "semirreacao": "Li⁺ + e⁻ → Li",
+    "potencial": -3.04
+  }
+]

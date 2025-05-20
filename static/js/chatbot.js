@@ -46,21 +46,14 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card suggestion-card" data-suggestion="Simule uma pilha de [eletrodo 1] e [eletrodo 2] e calcule sua voltagem.">
+                            <div class="card suggestion-card" data-suggestion="Calcular a voltagem de uma pilha de [eletrodo 1] e [eletrodo 2]">
                                 <div class="card-body text-center">
                                     <h6 class="card-title">Pilha Virtual</h6>
                                     <p class="card-text small">Monte uma pilha virtual e calcule a voltagem.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card suggestion-card" data-suggestion="Gerar um flashcard com trechos da base de dados sobre eletroquímica">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">Flashcard</h6>
-                                    <p class="card-text small">Crie um cartão de estudo rápido com informações sobre eletroquímica</p>
-                                </div>
-                            </div>
-                        </div>
+
                         <div class="col-md-4">
                             <div class="card suggestion-card" data-suggestion="Explicar eletroquímica fazendo analogias com [insira]">
                                 <div class="card-body text-center">
