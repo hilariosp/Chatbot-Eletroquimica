@@ -1,4 +1,5 @@
 Flask
+gunicorn
 llama-index-core
 llama-index-embeddings-huggingface
 llama-index-llms-openrouter
