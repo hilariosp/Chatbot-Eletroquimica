@@ -10,7 +10,8 @@ from collections import deque
 import sys
 import requests # Importa a biblioteca requests
 
-app = Flask(__orb)
+# CORREÇÃO AQUI: __name__ em vez de __orb
+app = Flask(__name__)
 CORS(app)
 
 # ===== CONFIGURAÇÃO MÍNIMA =====
