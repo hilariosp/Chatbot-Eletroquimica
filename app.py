@@ -297,7 +297,7 @@ def calcular_voltagem_pilha_json(eletrodos_str):
 def process_query_simple(user_input, chat_id):
     """Processa query de forma ultra simples, usando requests para o OpenRouter."""
     user_lower = user_input.lower()
-    chat_session = chat_manager.chats.get(chat_id)
+    chat_session = chat_manager.get_chat(chat_id)
 
     print(f"DEBUG: Input recebido: '{user_input}', Chat ID: '{chat_id}'", flush=True)
     print(f"DEBUG: chat_session existe: {bool(chat_session)}", flush=True)
@@ -322,8 +322,6 @@ def process_query_simple(user_input, chat_id):
             print(f"DEBUG: Usuário respondeu alternativa: '{user_lower}'", flush=True)
             is_correct = (user_lower == correct_answer_letter)
             
-            explanation_prompt = ""
-            # Ajuste no explanation_prompt para ser mais direto e evitar raciocínio do LLM
             explanation_prompt = (
                 f"A questão era: '{question_data['pergunta']}'\n"
                 f"A alternativa correta é '({correct_answer_letter.upper()})'. "
@@ -374,17 +372,12 @@ def process_query_simple(user_input, chat_id):
                 return "Ótimo. Deseja mais alguma coisa?"
             else:
                 print("DEBUG: Resposta inesperada após 'outra questão?'. Caindo para LLM geral.", flush=True)
-                # O usuário respondeu algo diferente de 'sim'/'não' após a pergunta.
-                # Trata como uma nova consulta geral e limpa o estado do quiz.
-                chat_session['current_question_data'] = None
-                # Permite que a lógica de consulta geral seja executada abaixo.
+                chat_session['current_question_data'] = None # Limpa o estado do quiz
                 # Não retorna aqui, para que caia na lógica do LLM geral.
                 response = "" # Reseta a resposta para que a lógica geral possa preenchê-la
         else:
             print("DEBUG: Não é uma alternativa e não é resposta a 'outra questão?'. Caindo para LLM geral.", flush=True)
-            # Se não for uma alternativa e nem uma resposta a "deseja fazer outra questão?",
-            # então não é uma interação do quiz. Limpa o estado do quiz e continua para a lógica geral.
-            chat_session['current_question_data'] = None 
+            chat_session['current_question_data'] = None # Limpa o estado do quiz
             pass # Cai para a lógica do LLM geral
     else: 
         print("DEBUG: current_question_data é None. Não está no modo de resposta/sim/não.", flush=True)
@@ -520,7 +513,7 @@ if __name__ == '__main__':
     
     print("🚀 PilhIA Ultra Leve (Direct API)", flush=True)
     print(f"🌐 Porta: {port}", flush=True)
-    print(f"📊 APIs: {len(API_KEYS)} chaves carregadas (de variáveis de ambiente)", flush=True)
+    print(f"📊 APIs: {len(API_keys)} chaves carregadas (de variáveis de ambiente)", flush=True)
     print(f"📚 Questões: {len(questions_list)} questões carregadas", flush=True)
     print(f"📖 Docs: {'✓' if simple_docs else '✗'} documentos de contexto carregados", flush=True)
     print(f"🧪 Tabela de Potenciais: {'✓' if tabela_potenciais_json else '✗'} carregada", flush=True)
