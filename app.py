@@ -38,6 +38,7 @@ class MiniChatManager:
         
         if chat_id is None:
             chat_id = str(uuid.uuid4())[:8]
+            print(f"DEBUG: Novo chat_id criado: {chat_id}", flush=True) # DEBUG
             
         if chat_id not in self.chats:
             self.chats[chat_id] = {
@@ -295,7 +296,8 @@ def process_query_simple(user_input, chat_id):
     chat_session = chat_manager.chats.get(chat_id)
 
     print(f"DEBUG: Input recebido: '{user_input}', Chat ID: '{chat_id}'", flush=True)
-    print(f"DEBUG: chat_session existe: {bool(chat_session)}, current_question_data: {bool(chat_session['current_question_data'] if chat_session else None)}", flush=True)
+    print(f"DEBUG: chat_session existe: {bool(chat_session)}", flush=True)
+    print(f"DEBUG: current_question_data ANTES DA LÓGICA: {chat_session['current_question_data'] if chat_session else 'N/A'}", flush=True)
 
     # 1. Lógica para cálculo de voltagem (PRIORITÁRIA)
     if "calcular a voltagem de uma pilha de" in user_lower:
@@ -361,6 +363,9 @@ def process_query_simple(user_input, chat_id):
         else:
             print("DEBUG: Não é uma alternativa e não é resposta a 'outra questão?'. Caindo para LLM geral.", flush=True)
             pass # Cai para a lógica do LLM geral
+    else: # Este 'else' é para quando current_question_data é None no início da função
+        print("DEBUG: current_question_data é None. Não está no modo de resposta/sim/não.", flush=True)
+        pass # Cai para a lógica do LLM geral
     
     # 3. Lógica para gerar questões (se não estiver respondendo uma questão ou cálculo)
     if "gerar questões" in user_lower or "questões enem" in user_lower or "questão" in user_lower:
@@ -451,7 +456,9 @@ def query():
         elif chat_id not in chat_manager.chats:
             chat_id = chat_manager.create_chat(chat_id)
         
+        print(f"DEBUG na rota /query: Recebido chat_id: {chat_id}, user_input: '{user_input}'", flush=True) # DEBUG
         response = process_query_simple(user_input, chat_id)
+        print(f"DEBUG na rota /query: Resposta de process_query_simple: '{response}'", flush=True) # DEBUG
         
         if not response.startswith("⚠️ Erro:"):
             chat_manager.add_message(chat_id, user_input, response)
