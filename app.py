@@ -73,13 +73,14 @@ def load_minimal_questions():
             print(f"⚠️ Nenhuma questão JSON encontrada em: {questoes_path}", flush=True)
             return []
 
+        # Carrega apenas o primeiro arquivo e um máximo de 10 questões para economizar memória
         file_path = os.path.join(questoes_path, files[0]) 
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
             if isinstance(data, list):
-                for item in data[:10]:
+                for item in data[:10]: # Limita a 10 questões por arquivo
                     question_text = item.get('questao')
                     alternatives = item.get('alternativas')
                     resposta_correta = item.get('resposta_correta')
@@ -91,7 +92,7 @@ def load_minimal_questions():
                             'pergunta': formatted_answer,
                             'resposta_correta': resposta_correta.lower()
                         })
-            elif isinstance(data, dict):
+            elif isinstance(data, dict): # Caso o JSON seja um único objeto de questão
                 question_text = data.get('questao')
                 alternatives = data.get('alternativas')
                 resposta_correta = data.get('resposta_correta')
@@ -114,6 +115,36 @@ def load_minimal_questions():
     return formatted_questions
 
 questions_list = load_minimal_questions()
+
+# ===== CARREGAMENTO DA TABELA DE POTENCIAIS (REINTRODUZIDO) =====
+def carregar_tabela_potenciais_json(file_path):
+    """Carrega a tabela de potenciais de um arquivo JSON."""
+    try:
+        if not Path(file_path).exists():
+            print(f"⚠️ Arquivo de tabela de potenciais não encontrado: {file_path}", flush=True)
+            return {}
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            potenciais = {}
+            for item in data:
+                metal = item.get('metal')
+                potencial = item.get('potencial')
+                if metal and potencial is not None:
+                    potenciais[metal.lower()] = potencial
+            print(f"✅ Tabela de potenciais carregada de: {file_path}", flush=True)
+            return potenciais
+    except json.JSONDecodeError as jde:
+        print(f"⚠️ Erro ao ler JSON da tabela de potenciais '{file_path}': {jde}", flush=True)
+        return {}
+    except Exception as e:
+        print(f"⚠️ Erro ao carregar tabela de potenciais: {e}", flush=True)
+        return {}
+
+# Carrega dados auxiliares na inicialização
+tabelas_path = "documentos/tabelas"
+tabela_path_json = os.path.join(tabelas_path, "tabela_potenciais.json")
+tabela_potenciais_json = carregar_tabela_potenciais_json(tabela_path_json)
+
 
 # ===== FUNÇÕES DE PROCESSAMENTO LEVES =====
 SYSTEM_PROMPT = """
@@ -179,24 +210,19 @@ def load_simple_documents():
     """Carrega documentos como texto simples de múltiplas pastas."""
     content = ""
     # Define as pastas de onde os documentos devem ser carregados
-    paths_to_load = ["documentos/basededados", "documentos/tabelas"]
+    paths_to_load = ["documentos/basededados"] # A tabela de potenciais será carregada separadamente
 
     for doc_folder in paths_to_load:
-        # Verifica se a pasta existe
         if not Path(doc_folder).exists():
             print(f"⚠️ Pasta de documentos não encontrada: {doc_folder}", flush=True)
-            continue # Pula para a próxima pasta se esta não existir
+            continue
 
         print(f"🔎 Carregando documentos de: {doc_folder}", flush=True)
         count = 0
-        # Itera sobre os arquivos na pasta
         for file in os.listdir(doc_folder):
-            # Limita o número de arquivos lidos por pasta ou no total (ajuste conforme necessário)
-            # Para este exemplo, vou manter um limite geral de 3 arquivos no total para cada pasta
             if count >= 3: 
                 break
             
-            # Garante que estamos lendo apenas arquivos de texto ou JSON
             if file.endswith(".txt") or file.endswith(".json"):
                 try:
                     file_path = os.path.join(doc_folder, file)
@@ -205,13 +231,11 @@ def load_simple_documents():
                     if file.endswith(".json"):
                         with open(file_path, 'r', encoding='utf-8') as f:
                             json_data = json.load(f)
-                            # Converte o JSON para uma string formatada para a IA ler
                             file_text = json.dumps(json_data, indent=2, ensure_ascii=False)
-                    else: # Assume .txt
+                    else:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             file_text = f.read()
 
-                    # Adiciona o conteúdo do arquivo ao contexto, limitando cada arquivo a 2000 caracteres
                     content += f"\n--- Conteúdo de {doc_folder}/{file} ---\n{file_text[:2000]}\n"
                     count += 1
                     print(f"  ✅ Lido: {file_path}", flush=True)
@@ -222,33 +246,66 @@ def load_simple_documents():
             else:
                 print(f"  ⚠️ Ignorado: {file_path} (não é .txt ou .json)", flush=True)
                     
-    # Retorna o conteúdo total, limitado a 8000 caracteres (ajuste conforme o modelo precisar e puder processar)
     return content[:8000]
 
 # Carrega documentos como texto simples (executado na inicialização)
 simple_docs = load_simple_documents()
 
+# ===== FUNÇÃO DE CÁLCULO DE VOLTAGEM (REINTRODUZIDO) =====
+def calcular_voltagem_pilha_json(eletrodos_str):
+    """Calcula voltagem da pilha usando tabela JSON, retornando apenas o resultado."""
+    try:
+        eletrodos = [eletrodo.strip().lower() for eletrodo in eletrodos_str.split(' e ')]
+        if len(eletrodos) != 2:
+            return "Por favor, especifique exatamente dois eletrodos separados por 'e' (ex: 'cobre e zinco')."
+
+        potenciais = {}
+        for eletrodo in eletrodos:
+            if eletrodo in tabela_potenciais_json:
+                potenciais[eletrodo] = tabela_potenciais_json[eletrodo]
+            else:
+                return f"Não encontrei o potencial padrão para '{eletrodo}'. Verifique a grafia ou se está na tabela."
+
+        catodo = max(potenciais, key=potenciais.get)
+        anodo = min(potenciais, key=potenciais.get)
+        voltagem = potenciais[catodo] - potenciais[anodo]
+        # Retorna APENAS o resultado do cálculo
+        return f"A voltagem da pilha com {catodo.capitalize()} e {anodo.capitalize()} é de {voltagem:.2f} V."
+
+    except Exception as e:
+        print(f"⚠️ Erro no cálculo da voltagem: {str(e)}", flush=True)
+        return f"Erro ao calcular a voltagem. Detalhes: {str(e)}"
+
+
 def process_query_simple(user_input, chat_id):
     """Processa query de forma ultra simples, usando requests para o OpenRouter."""
     user_lower = user_input.lower()
     
-    # Lógica para questões (mantida)
-    if "questão" in user_lower or "questões" in user_lower:
+    # 1. Lógica para cálculo de voltagem (PRIORITÁRIA)
+    if "calcular a voltagem de uma pilha de" in user_lower:
+        eletrodos_str = user_lower.split("de uma pilha de")[1].strip()
+        return calcular_voltagem_pilha_json(eletrodos_str)
+    
+    # 2. Lógica para questões
+    if "gerar questões" in user_lower or "questões enem" in user_lower or "questão" in user_lower:
         if questions_list:
             q = random.choice(questions_list)
             text = q.get('questao', '')
             alts = q.get('alternativas', {})
             
+            if not text or not alts: # Verifica se a questão tem conteúdo
+                print(f"⚠️ Questão selecionada vazia ou mal formatada: {q}", flush=True)
+                return "Não foi possível gerar uma questão válida no momento. Tente novamente."
+
             result = f"{text}\n\n"
             for letter, option in list(alts.items())[:4]:
                 result += f"({letter.upper()}) {option}\n"
             return result[:800]
         return "Questões não disponíveis."
     
-    # Prepara mensagens para a API do OpenRouter
+    # 3. Lógica para consulta com LLM (se nada acima for acionado)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
-    # Adiciona contexto dos documentos, se houver
     if simple_docs:
         messages.append({"role": "user", "content": f"Contexto: {simple_docs[:3000]}\n\nPergunta: {user_input[:300]}"})
     else:
@@ -259,8 +316,6 @@ def process_query_simple(user_input, chat_id):
         ai_response = call_openrouter_api(messages, api_key)
         
         if ai_response:
-            # O slicing final aqui é uma garantia, mas a instrução no SYSTEM_PROMPT
-            # e o max_tokens devem fazer o trabalho principal de resumo.
             return ai_response[:800] 
         else:
             return "⚠️ Erro na comunicação com a IA. Por favor, verifique as chaves API e os logs do servidor."
@@ -332,7 +387,8 @@ def health():
         'questions': len(questions_list),
         'openrouter_available': OPENROUTER_API_AVAILABLE,
         'memory': 'optimized',
-        'llm_mode': 'requests_direct'
+        'llm_mode': 'requests_direct',
+        'tabela_potenciais_carregada': bool(tabela_potenciais_json) # Adiciona status da tabela
     })
 
 # ===== CONFIGURAÇÃO PARA RENDER =====
@@ -344,6 +400,7 @@ if __name__ == '__main__':
     print(f"📊 APIs: {len(API_KEYS)} chaves carregadas (de variáveis de ambiente)", flush=True)
     print(f"📚 Questões: {len(questions_list)} questões carregadas", flush=True)
     print(f"📖 Docs: {'✓' if simple_docs else '✗'} documentos de contexto carregados", flush=True)
+    print(f"🧪 Tabela de Potenciais: {'✓' if tabela_potenciais_json else '✗'} carregada", flush=True)
     print(f"🧠 OpenRouter API disponível: {'✓' if OPENROUTER_API_AVAILABLE else '✗'}", flush=True)
     
     app.run(
