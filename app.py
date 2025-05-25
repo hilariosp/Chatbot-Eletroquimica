@@ -10,7 +10,6 @@ from collections import deque
 import sys
 import requests # Importa a biblioteca requests
 
-# CORREÇÃO AQUI: __name__ em vez de __orb
 app = Flask(__name__)
 CORS(app)
 
@@ -44,7 +43,8 @@ class MiniChatManager:
             self.chats[chat_id] = {
                 'history': deque(maxlen=3),
                 'last_activity': time.time(),
-                'count': 0
+                'count': 0,
+                'current_question_data': None # Adicionado para armazenar a questão atual
             }
         
         return chat_id
@@ -91,6 +91,7 @@ def load_minimal_questions():
                             formatted_answer += f"({letter.upper()}) {option}\n"
                         formatted_questions.append({
                             'pergunta': formatted_answer,
+                            'alternativas': alternatives, # Mantém alternativas para verificação
                             'resposta_correta': resposta_correta.lower()
                         })
             elif isinstance(data, dict): # Caso o JSON seja um único objeto de questão
@@ -103,6 +104,7 @@ def load_minimal_questions():
                         formatted_answer += f"({letter.upper()}) {option}\n"
                     formatted_questions.append({
                         'pergunta': formatted_answer,
+                        'alternativas': alternatives, # Mantém alternativas para verificação
                         'resposta_correta': resposta_correta.lower()
                     })
                     
@@ -257,7 +259,6 @@ simple_docs = load_simple_documents()
 def calcular_voltagem_pilha_json(eletrodos_str):
     """Calcula voltagem da pilha usando tabela JSON, retornando apenas o resultado."""
     try:
-        # Tenta parsear a string de eletrodos, aceitando "e" ou "e ", etc.
         eletrodos = [e.strip().lower() for e in eletrodos_str.split(' e ') if e.strip()]
         
         if len(eletrodos) != 2:
@@ -265,21 +266,15 @@ def calcular_voltagem_pilha_json(eletrodos_str):
 
         potenciais = {}
         for eletrodo in eletrodos:
-            # Verifica se o eletrodo existe na tabela de potenciais carregada
-            if eletrodo in tabela_potenciais_json:
-                potenciais[eletrodo] = tabela_potenciais_json[eletrodo]
-            else:
-                # Tenta encontrar correspondências parciais, como "cobre" para "cobre (ii)"
-                found_match = False
-                for key_metal in tabela_potenciais_json:
-                    if eletrodo in key_metal: # Verifica se o eletrodo de entrada é parte da chave da tabela
-                        potenciais[eletrodo] = tabela_potenciais_json[key_metal]
-                        found_match = True
-                        break
-                if not found_match:
-                    return f"Não encontrei o potencial padrão para '{eletrodo}'. Verifique a grafia ou se está na tabela."
+            found_match = False
+            for key_metal in tabela_potenciais_json:
+                if eletrodo in key_metal: 
+                    potenciais[eletrodo] = tabela_potenciais_json[key_metal]
+                    found_match = True
+                    break
+            if not found_match:
+                return f"Não encontrei o potencial padrão para '{eletrodo}'. Verifique a grafia ou se está na tabela."
 
-        # Garante que ambos os potenciais foram encontrados
         if len(potenciais) < 2:
             return "Não foi possível encontrar potenciais para ambos os eletrodos. Verifique a grafia."
 
@@ -287,7 +282,6 @@ def calcular_voltagem_pilha_json(eletrodos_str):
         anodo_name = min(potenciais, key=potenciais.get)
         voltagem = potenciais[catodo_name] - potenciais[anodo_name]
         
-        # Retorna APENAS o resultado do cálculo, formatado
         return f"A voltagem da pilha com {catodo_name.capitalize()} e {anodo_name.capitalize()} é de {voltagem:.2f} V."
 
     except Exception as e:
@@ -298,30 +292,78 @@ def calcular_voltagem_pilha_json(eletrodos_str):
 def process_query_simple(user_input, chat_id):
     """Processa query de forma ultra simples, usando requests para o OpenRouter."""
     user_lower = user_input.lower()
-    
+    chat_session = chat_manager.chats.get(chat_id)
+
     # 1. Lógica para cálculo de voltagem (PRIORITÁRIA)
     if "calcular a voltagem de uma pilha de" in user_lower:
         eletrodos_str = user_lower.split("de uma pilha de")[1].strip()
         return calcular_voltagem_pilha_json(eletrodos_str)
     
-    # 2. Lógica para questões
+    # 2. Lógica para responder a questões (se uma questão foi gerada anteriormente)
+    if chat_session and chat_session['current_question_data']:
+        question_data = chat_session['current_question_data']
+        correct_answer_letter = question_data['resposta_correta'].lower()
+        
+        # Verifica se a entrada do usuário é uma alternativa (a, b, c, d, e)
+        if user_lower in ['a', 'b', 'c', 'd', 'e']:
+            is_correct = (user_lower == correct_answer_letter)
+            
+            explanation_prompt = ""
+            if is_correct:
+                explanation_prompt = f"Explique em detalhes por que a resposta '{user_lower.upper()}' está correta para a seguinte questão: '{question_data['pergunta']}'. Seja conciso e direto."
+            else:
+                explanation_prompt = f"A resposta '{user_lower.upper()}' está incorreta. A resposta correta é '{correct_answer_letter.upper()}'. Explique em detalhes por que a resposta correta é '{correct_answer_letter.upper()}' para a seguinte questão: '{question_data['pergunta']}'. Seja conciso e direto."
+            
+            # Chama a IA para a explicação
+            explanation_messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": explanation_prompt}]
+            explanation_response = ""
+            if OPENROUTER_API_AVAILABLE:
+                api_key = random.choice(API_KEYS)
+                explanation_response = call_openrouter_api(explanation_messages, api_key)
+                if not explanation_response:
+                    explanation_response = "Não foi possível gerar uma explicação no momento. Verifique as chaves API."
+            else:
+                explanation_response = "Sistema de IA para explicações não disponível."
+
+            chat_session['current_question_data'] = None # Limpa a questão atual após a resposta
+            
+            feedback_message = ""
+            if is_correct:
+                feedback_message = f"Você acertou! A resposta correta é ({correct_answer_letter.upper()}).\n"
+            else:
+                feedback_message = f"Você errou. A resposta correta é ({correct_answer_letter.upper()}).\n"
+            
+            return f"{feedback_message}{explanation_response}\nDeseja fazer outra questão? (sim/não)"
+        
+        # Lógica para "sim" ou "não" após uma questão respondida
+        # Verifica o histórico para ver se a última mensagem da IA foi a pergunta sobre "outra questão?"
+        if chat_session['history'] and "deseja fazer outra questão?" in chat_session['history'][-1][1].lower():
+            if user_lower == "sim":
+                if questions_list:
+                    q = random.choice(questions_list)
+                    chat_session['current_question_data'] = q # Armazena a nova questão
+                    return q.get('pergunta', "Não foi possível gerar uma questão válida no momento. Tente novamente.")
+                return "Não há mais questões disponíveis."
+            elif user_lower == "não":
+                chat_session['current_question_data'] = None # Garante que a questão seja limpa
+                return "Ótimo. Deseja mais alguma coisa?"
+
+    # 3. Lógica para gerar questões (se não estiver respondendo uma questão)
     if "gerar questões" in user_lower or "questões enem" in user_lower or "questão" in user_lower:
         if questions_list:
             q = random.choice(questions_list)
             
-            # Agora, 'pergunta' já contém o texto da questão formatado com as alternativas
             question_text_with_alts = q.get('pergunta', '')
             
-            if not question_text_with_alts: # Verifica se o texto formatado da questão está vazio
+            if not question_text_with_alts: 
                 print(f"⚠️ Questão selecionada vazia ou mal formatada após formatação inicial: {q}", flush=True)
                 return "Não foi possível gerar uma questão válida no momento. Tente novamente."
 
-            # A variável 'result' já é o texto completo da questão
-            result = question_text_with_alts
-            return result[:800] # Limita o tamanho para o frontend
+            chat_session['current_question_data'] = q # Armazena a questão gerada
+            return question_text_with_alts[:800] 
         return "Questões não disponíveis."
     
-    # 3. Lógica para consulta com LLM (se nada acima for acionado)
+    # 4. Lógica para consulta com LLM (se nada acima for acionado)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
     if simple_docs:
@@ -354,6 +396,20 @@ def home():
 @app.route('/chatbot')
 def chatbot():
     return render_template('index.html')
+
+# Novas rotas para as páginas estáticas
+@app.route('/contato')
+def contato():
+    return render_template('contato.html')
+
+@app.route('/recursos')
+def recursos():
+    return render_template('recursos.html')
+
+@app.route('/sobre')
+def sobre():
+    return render_template('sobre.html')
+
 
 @app.route('/ping')
 def ping():
