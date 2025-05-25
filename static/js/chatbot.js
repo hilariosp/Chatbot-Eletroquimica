@@ -7,21 +7,19 @@ function toggleSidebar() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const chatBox = document.getElementById('chat-box');
+    // CORREÇÃO CRÍTICA: Alinhando o ID do JS com o ID do HTML
+    const chatContainer = document.getElementById('chat-container'); 
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
     
-    // Usando 'currentChatId' para consistência com o JS fornecido pelo usuário
-    // e 'danielia-chats' para o histórico local.
     let currentChatId = localStorage.getItem('currentChatId') || ('temp-' + Date.now().toString());
     let chats = JSON.parse(localStorage.getItem('danielia-chats')) || {};
     let chatToDelete = null; // Variável para o modal de exclusão (se houver)
 
-    // Função para adicionar sugestões (se houver um container para elas)
+    // Função para adicionar sugestões
     function addSuggestionsToChat() {
-        const chatContainer = document.querySelector('.chatbot-container'); // Ou o ID correto do container principal do chat
-        if (!chatContainer) {
-            console.warn("Elemento '.chatbot-container' não encontrado para adicionar sugestões.");
+        if (!chatContainer) { // Usando chatContainer agora
+            console.warn("Elemento 'chat-container' não encontrado para adicionar sugestões.");
             return;
         }
 
@@ -64,13 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        const existingSuggestions = chatContainer.querySelector('.suggestions');
+        const existingSuggestions = chatContainer.querySelector('.suggestions'); // Usando chatContainer
         if (existingSuggestions) {
-            chatContainer.removeChild(existingSuggestions);
+            chatContainer.removeChild(existingSuggestions); // Usando chatContainer
         }
-        chatContainer.appendChild(suggestionsDiv);
+        chatContainer.appendChild(suggestionsDiv); // Usando chatContainer
 
-        const suggestionCards = chatContainer.querySelectorAll('.suggestion-card');
+        const suggestionCards = chatContainer.querySelectorAll('.suggestion-card'); // Usando chatContainer
         suggestionCards.forEach(card => {
             card.addEventListener('click', () => {
                 const suggestionText = card.getAttribute('data-suggestion');
@@ -82,11 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para remover sugestões
     function removeSuggestionsFromChat() {
-        const chatContainer = document.querySelector('.chatbot-container'); // Ou o ID correto
-        if (!chatContainer) return;
-        const suggestionsDiv = chatContainer.querySelector('.suggestions');
+        if (!chatContainer) return; // Usando chatContainer
+        const suggestionsDiv = chatContainer.querySelector('.suggestions'); // Usando chatContainer
         if (suggestionsDiv) {
-            chatContainer.removeChild(suggestionsDiv);
+            chatContainer.removeChild(suggestionsDiv); // Usando chatContainer
         }
     }
 
@@ -99,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadChatHistory() {
         const chatHistoryContainer = document.getElementById('chat-history-container');
         if (!chatHistoryContainer) {
-            // console.warn("Elemento 'chat-history-container' não encontrado. Histórico de chats não será carregado.");
             return;
         }
         chatHistoryContainer.innerHTML = '';
@@ -121,8 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // showDeleteConfirmation(chat.id); // Se você tiver um modal de confirmação
-                deleteChat(chat.id); // Exclui diretamente para simplificar
+                deleteChat(chat.id);
             });
 
             chatElement.appendChild(titleSpan);
@@ -143,31 +138,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadChat(chatId) {
         currentChatId = chatId;
         localStorage.setItem('currentChatId', currentChatId);
-        chatBox.innerHTML = ''; // Limpa o chatbox
-        removeSuggestionsFromChat(); // Remove sugestões ao carregar um chat existente
+        chatContainer.innerHTML = ''; // Usando chatContainer
+        removeSuggestionsFromChat();
 
         const chat = chats[chatId];
         if (!chat || chat.messages.length === 0) {
-            // Se o chat está vazio, mostra o placeholder e sugestões
-            chatBox.innerHTML = `
-                <div class="text-center mt-5 pt-5">
-                    <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
-                </div>`;
-            addSuggestionsToChat();
+            chatContainer.innerHTML = ``; // Usando chatContainer. Removido o placeholder aqui para ser adicionado pela addSuggestionsToChat se for um novo chat
+            addSuggestionsToChat(); // Adiciona sugestões e o placeholder
         } else {
-            // Adiciona as mensagens do histórico
             chat.messages.forEach(msg => {
-                addMessage(msg.content, msg.isUser, false); // Não salva novamente no histórico
+                addMessage(msg.content, msg.isUser, false);
             });
         }
-        chatBox.scrollTop = chatBox.scrollHeight;
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Usando chatContainer
     }
 
     // Função para criar um novo chat (limpa a tela e gera um temp-id)
     function createNewChat() {
         currentChatId = 'temp-' + Date.now().toString();
         localStorage.setItem('currentChatId', currentChatId);
-        chatBox.innerHTML = `
+        // CORREÇÃO: Usando chatContainer aqui também
+        chatContainer.innerHTML = `
             <div class="text-center mt-5 pt-5">
                 <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
             </div>`;
@@ -182,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function addMessage(content, isUser = false, saveToHistory = true) {
         const timestamp = new Date();
         const hours = timestamp.getHours().toString().padStart(2, '0');
-        const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+        const minutes = timestamp.getHours().toString().padStart(2, '0'); // Fix: should be minutes
         const timeString = `${hours}:${minutes}`;
 
         // Lógica para criar um novo chat real quando o usuário envia a primeira mensagem
@@ -221,9 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Remove o placeholder inicial e sugestões se houver
-        const placeholder = chatBox.querySelector('.text-center');
+        const placeholder = chatContainer.querySelector('.text-center'); // Usando chatContainer
         if (placeholder) {
-            chatBox.removeChild(placeholder);
+            chatContainer.removeChild(placeholder); // Usando chatContainer
         }
         removeSuggestionsFromChat();
 
@@ -244,8 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.appendChild(paragraph);
         });
 
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight; // Rola para o final
+        chatContainer.appendChild(messageDiv); // Usando chatContainer
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Usando chatContainer
     }
 
     // Função para mostrar o indicador de digitação
@@ -254,8 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
         typingDiv.className = 'message p-3 bot-message typing-indicator';
         typingDiv.innerHTML = '<span></span><span></span><span></span>';
         typingDiv.id = 'typing-indicator';
-        chatBox.appendChild(typingDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        chatContainer.appendChild(typingDiv); // Usando chatContainer
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Usando chatContainer
     }
 
     // Função principal para enviar mensagem
@@ -268,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userInput.value = 'Enviando...';
         sendButton.disabled = true;
 
-        addMessage(message, true); // Adiciona mensagem do usuário e gerencia o chat_id localmente
+        addMessage(message, true);
         userInput.style.height = 'auto';
 
         showTyping();
@@ -279,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // CORREÇÃO CRÍTICA: Envia 'chat_id' como esperado pelo backend
                 body: JSON.stringify({ query: message, chat_id: currentChatId }), 
             });
             const responseData = await response.json();
@@ -298,10 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 addMessage(responseData.answer, false);
             }
-
-            // Não é necessário atualizar currentChatId aqui, pois addMessage já faz isso
-            // quando um temp-id é convertido para um ID real.
-            // O backend sempre retorna o chat_id correto.
 
         } catch (error) {
             console.error('Erro:', error);
@@ -328,9 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function deleteChat(chatIdToDelete) { // Simplificado para excluir direto
+    function deleteChat(chatIdToDelete) {
         if (currentChatId === chatIdToDelete) {
-            createNewChat(); // Inicia um novo chat se o atual for excluído
+            createNewChat();
         }
         delete chats[chatIdToDelete];
         saveChats();
