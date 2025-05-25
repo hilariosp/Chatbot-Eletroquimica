@@ -10,7 +10,7 @@ from collections import deque
 import sys
 import requests # Importa a biblioteca requests
 
-app = Flask(__name__)
+app = Flask(__orb)
 CORS(app)
 
 # ===== CONFIGURAÇÃO MÍNIMA =====
@@ -210,7 +210,8 @@ def load_simple_documents():
     """Carrega documentos como texto simples de múltiplas pastas."""
     content = ""
     # Define as pastas de onde os documentos devem ser carregados
-    paths_to_load = ["documentos/basededados"] # A tabela de potenciais será carregada separadamente
+    # A tabela de potenciais será carregada separadamente por carregar_tabela_potenciais_json
+    paths_to_load = ["documentos/basededados"] 
 
     for doc_folder in paths_to_load:
         if not Path(doc_folder).exists():
@@ -255,22 +256,38 @@ simple_docs = load_simple_documents()
 def calcular_voltagem_pilha_json(eletrodos_str):
     """Calcula voltagem da pilha usando tabela JSON, retornando apenas o resultado."""
     try:
-        eletrodos = [eletrodo.strip().lower() for eletrodo in eletrodos_str.split(' e ')]
+        # Tenta parsear a string de eletrodos, aceitando "e" ou "e ", etc.
+        eletrodos = [e.strip().lower() for e in eletrodos_str.split(' e ') if e.strip()]
+        
         if len(eletrodos) != 2:
             return "Por favor, especifique exatamente dois eletrodos separados por 'e' (ex: 'cobre e zinco')."
 
         potenciais = {}
         for eletrodo in eletrodos:
+            # Verifica se o eletrodo existe na tabela de potenciais carregada
             if eletrodo in tabela_potenciais_json:
                 potenciais[eletrodo] = tabela_potenciais_json[eletrodo]
             else:
-                return f"Não encontrei o potencial padrão para '{eletrodo}'. Verifique a grafia ou se está na tabela."
+                # Tenta encontrar correspondências parciais, como "cobre" para "cobre (ii)"
+                found_match = False
+                for key_metal in tabela_potenciais_json:
+                    if eletrodo in key_metal: # Verifica se o eletrodo de entrada é parte da chave da tabela
+                        potenciais[eletrodo] = tabela_potenciais_json[key_metal]
+                        found_match = True
+                        break
+                if not found_match:
+                    return f"Não encontrei o potencial padrão para '{eletrodo}'. Verifique a grafia ou se está na tabela."
 
-        catodo = max(potenciais, key=potenciais.get)
-        anodo = min(potenciais, key=potenciais.get)
-        voltagem = potenciais[catodo] - potenciais[anodo]
-        # Retorna APENAS o resultado do cálculo
-        return f"A voltagem da pilha com {catodo.capitalize()} e {anodo.capitalize()} é de {voltagem:.2f} V."
+        # Garante que ambos os potenciais foram encontrados
+        if len(potenciais) < 2:
+            return "Não foi possível encontrar potenciais para ambos os eletrodos. Verifique a grafia."
+
+        catodo_name = max(potenciais, key=potenciais.get)
+        anodo_name = min(potenciais, key=potenciais.get)
+        voltagem = potenciais[catodo_name] - potenciais[anodo_name]
+        
+        # Retorna APENAS o resultado do cálculo, formatado
+        return f"A voltagem da pilha com {catodo_name.capitalize()} e {anodo_name.capitalize()} é de {voltagem:.2f} V."
 
     except Exception as e:
         print(f"⚠️ Erro no cálculo da voltagem: {str(e)}", flush=True)
@@ -290,17 +307,17 @@ def process_query_simple(user_input, chat_id):
     if "gerar questões" in user_lower or "questões enem" in user_lower or "questão" in user_lower:
         if questions_list:
             q = random.choice(questions_list)
-            text = q.get('questao', '')
-            alts = q.get('alternativas', {})
             
-            if not text or not alts: # Verifica se a questão tem conteúdo
-                print(f"⚠️ Questão selecionada vazia ou mal formatada: {q}", flush=True)
+            # Agora, 'pergunta' já contém o texto da questão formatado com as alternativas
+            question_text_with_alts = q.get('pergunta', '')
+            
+            if not question_text_with_alts: # Verifica se o texto formatado da questão está vazio
+                print(f"⚠️ Questão selecionada vazia ou mal formatada após formatação inicial: {q}", flush=True)
                 return "Não foi possível gerar uma questão válida no momento. Tente novamente."
 
-            result = f"{text}\n\n"
-            for letter, option in list(alts.items())[:4]:
-                result += f"({letter.upper()}) {option}\n"
-            return result[:800]
+            # A variável 'result' já é o texto completo da questão
+            result = question_text_with_alts
+            return result[:800] # Limita o tamanho para o frontend
         return "Questões não disponíveis."
     
     # 3. Lógica para consulta com LLM (se nada acima for acionado)
