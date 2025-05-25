@@ -294,24 +294,33 @@ def process_query_simple(user_input, chat_id):
     user_lower = user_input.lower()
     chat_session = chat_manager.chats.get(chat_id)
 
+    print(f"DEBUG: Input recebido: '{user_input}', Chat ID: '{chat_id}'", flush=True)
+    print(f"DEBUG: chat_session existe: {bool(chat_session)}, current_question_data: {bool(chat_session['current_question_data'] if chat_session else None)}", flush=True)
+
     # 1. Lógica para cálculo de voltagem (PRIORITÁRIA)
     if "calcular a voltagem de uma pilha de" in user_lower:
+        print("DEBUG: Entrou na lógica de cálculo de voltagem.", flush=True)
         eletrodos_str = user_lower.split("de uma pilha de")[1].strip()
         return calcular_voltagem_pilha_json(eletrodos_str)
     
     # 2. Lógica para responder a questões (se uma questão foi gerada anteriormente)
+    # E também para lidar com "sim/não" após a resposta
     if chat_session and chat_session['current_question_data']:
+        print("DEBUG: current_question_data existe. Verificando resposta ou sim/não.", flush=True)
         question_data = chat_session['current_question_data']
         correct_answer_letter = question_data['resposta_correta'].lower()
         
         # Verifica se a entrada do usuário é uma alternativa (a, b, c, d, e)
         if user_lower in ['a', 'b', 'c', 'd', 'e']:
+            print(f"DEBUG: Usuário respondeu alternativa: '{user_lower}'", flush=True)
             is_correct = (user_lower == correct_answer_letter)
             
             explanation_prompt = ""
             if is_correct:
+                feedback_message = f"Você acertou! A resposta correta é ({correct_answer_letter.upper()}).\n"
                 explanation_prompt = f"Explique em detalhes por que a resposta '{user_lower.upper()}' está correta para a seguinte questão: '{question_data['pergunta']}'. Seja conciso e direto."
             else:
+                feedback_message = f"Você errou. A resposta correta é ({correct_answer_letter.upper()}).\n"
                 explanation_prompt = f"A resposta '{user_lower.upper()}' está incorreta. A resposta correta é '{correct_answer_letter.upper()}'. Explique em detalhes por que a resposta correta é '{correct_answer_letter.upper()}' para a seguinte questão: '{question_data['pergunta']}'. Seja conciso e direto."
             
             # Chama a IA para a explicação
@@ -325,19 +334,17 @@ def process_query_simple(user_input, chat_id):
             else:
                 explanation_response = "Sistema de IA para explicações não disponível."
 
-            chat_session['current_question_data'] = None # Limpa a questão atual após a resposta
-            
-            feedback_message = ""
-            if is_correct:
-                feedback_message = f"Você acertou! A resposta correta é ({correct_answer_letter.upper()}).\n"
-            else:
-                feedback_message = f"Você errou. A resposta correta é ({correct_answer_letter.upper()}).\n"
+            # Não limpa current_question_data imediatamente, pois a próxima pergunta é "Deseja fazer outra questão?"
+            # A limpeza ocorrerá quando o usuário responder "sim" ou "não".
             
             return f"{feedback_message}{explanation_response}\nDeseja fazer outra questão? (sim/não)"
         
         # Lógica para "sim" ou "não" após uma questão respondida
-        # Verifica o histórico para ver se a última mensagem da IA foi a pergunta sobre "outra questão?"
-        if chat_session['history'] and "deseja fazer outra questão?" in chat_session['history'][-1][1].lower():
+        # Verifica se a última mensagem da IA foi a pergunta sobre "outra questão?"
+        # Adicionei uma verificação mais flexível para a última mensagem da IA
+        last_ai_message = chat_session['history'][-1][1].lower() if chat_session['history'] else ""
+        if "deseja fazer outra questão?" in last_ai_message:
+            print(f"DEBUG: Usuário respondeu sim/não: '{user_lower}'", flush=True)
             if user_lower == "sim":
                 if questions_list:
                     q = random.choice(questions_list)
@@ -347,9 +354,17 @@ def process_query_simple(user_input, chat_id):
             elif user_lower == "não":
                 chat_session['current_question_data'] = None # Garante que a questão seja limpa
                 return "Ótimo. Deseja mais alguma coisa?"
-
-    # 3. Lógica para gerar questões (se não estiver respondendo uma questão)
+            else:
+                # Se não for 'sim' ou 'não' após a pergunta, fallback para o LLM geral
+                print("DEBUG: Resposta inesperada após 'outra questão?'. Caindo para LLM geral.", flush=True)
+                pass # Cai para a lógica do LLM geral
+        else:
+            print("DEBUG: Não é uma alternativa e não é resposta a 'outra questão?'. Caindo para LLM geral.", flush=True)
+            pass # Cai para a lógica do LLM geral
+    
+    # 3. Lógica para gerar questões (se não estiver respondendo uma questão ou cálculo)
     if "gerar questões" in user_lower or "questões enem" in user_lower or "questão" in user_lower:
+        print("DEBUG: Entrou na lógica de gerar questões.", flush=True)
         if questions_list:
             q = random.choice(questions_list)
             
@@ -364,6 +379,7 @@ def process_query_simple(user_input, chat_id):
         return "Questões não disponíveis."
     
     # 4. Lógica para consulta com LLM (se nada acima for acionado)
+    print("DEBUG: Caindo na lógica de consulta geral com LLM.", flush=True)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     
     if simple_docs:
