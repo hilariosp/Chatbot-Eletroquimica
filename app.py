@@ -165,7 +165,7 @@ Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 - Se não souber a resposta ou a pergunta estiver incompleta como por exemplo 'o que é a', diga apenas "Não sei responder isso".
 - Se for perguntado algo fora de eletroquimica, baterias, eletrolise e pilha de daniell, diga que não pode responder a pergunta por estar fora do assunto, mas se sugerir uma explicação usando analogias mas que ainda seja sobre eletroquimica aceite.
 - Se pedir questões sobre eletroquimica, você deve pegar elas diretamente da pasta 'questoes', e soltar apenas uma por vez.
-- **Ao explicar a resposta de uma questão, concentre-se APENAS no raciocínio e na explicação detalhada da alternativa CORRETA. NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão. Sua explicação deve ser uma justificativa direta para a alternativa que já foi identificada como correta.**
+- **Ao explicar a resposta de uma questão, forneça APENAS a justificativa conceitual e quimicamente ACURADA para a alternativa CORRETA. NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão. Sua explicação deve ser uma justificativa direta, concisa e precisa, focando nos princípios da eletroquímica.**
 
 2. FORMATO:
 - Use parágrafos curtos e marcadores quando apropriado.
@@ -297,7 +297,7 @@ def calcular_voltagem_pilha_json(eletrodos_str):
 def process_query_simple(user_input, chat_id):
     """Processa query de forma ultra simples, usando requests para o OpenRouter."""
     user_lower = user_input.lower()
-    chat_session = chat_manager.get_chat(chat_id) # Obtenha a sessão de chat
+    chat_session = chat_manager.chats.get(chat_id)
 
     print(f"DEBUG: Input recebido: '{user_input}', Chat ID: '{chat_id}'", flush=True)
     print(f"DEBUG: chat_session existe: {bool(chat_session)}", flush=True)
@@ -323,22 +323,14 @@ def process_query_simple(user_input, chat_id):
             is_correct = (user_lower == correct_answer_letter)
             
             explanation_prompt = ""
-            if is_correct:
-                feedback_message = f"Você acertou! A resposta correta é ({correct_answer_letter.upper()}).\n"
-                explanation_prompt = (
-                    f"A questão era: '{question_data['pergunta']}'\n"
-                    f"A resposta correta é a alternativa '({correct_answer_letter.upper()})'. "
-                    f"Explique em detalhes o raciocínio e por que essa alternativa '({correct_answer_letter.upper()})' está correta. "
-                    f"Foque apenas na justificativa da resposta fornecida, **NÃO re-afirme a resposta correta, não mencione outras alternativas e não tente calcular a resposta novamente.**"
-                )
-            else:
-                feedback_message = f"Você errou. A resposta correta é ({correct_answer_letter.upper()}).\n"
-                explanation_prompt = (
-                    f"A questão era: '{question_data['pergunta']}'\n"
-                    f"A resposta correta é a alternativa '({correct_answer_letter.upper()})'. "
-                    f"Explique em detalhes o raciocínio e por que essa alternativa '({correct_answer_letter.upper()})' é a resposta correta. "
-                    f"Foque apenas na justificativa da resposta fornecida, **NÃO re-afirme a resposta correta, não mencione outras alternativas e não tente calcular a resposta novamente.**"
-                )
+            # Ajuste no explanation_prompt para ser mais direto e evitar raciocínio do LLM
+            explanation_prompt = (
+                f"A questão era: '{question_data['pergunta']}'\n"
+                f"A alternativa correta é '({correct_answer_letter.upper()})'. "
+                f"Forneça uma justificativa concisa e quimicamente ACURADA para esta alternativa, "
+                f"focando nos princípios da eletroquímica. "
+                f"**NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**"
+            )
             
             # Chama a IA para a explicação
             explanation_messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": explanation_prompt}]
@@ -354,7 +346,12 @@ def process_query_simple(user_input, chat_id):
             # A limpeza de current_question_data NÃO ACONTECE AQUI.
             # Ela só ocorrerá se o usuário disser 'não' ou uma nova questão for gerada.
             
-            return f"{feedback_message}{explanation_response}\nDeseja fazer outra questão? (sim/não)"
+            if is_correct:
+                response = f"Você acertou! A resposta correta é ({correct_answer_letter.upper()}).\n{explanation_response}\nDeseja fazer outra questão? (sim/não)"
+            else:
+                response = f"Você errou. A resposta correta é ({correct_answer_letter.upper()}).\n{explanation_response}\nDeseja fazer outra questão? (sim/não)"
+            
+            return response
         
         # Lógica para "sim" ou "não" após uma questão respondida
         last_ai_message = chat_session['history'][-1][1].lower() if chat_session['history'] else ""
@@ -482,9 +479,8 @@ def query():
         
         if not chat_id:
             chat_id, _ = chat_manager.create_chat() # Cria um novo e pega o ID
-        else:
-            # Garante que a sessão exista, criando-a se necessário
-            chat_id, _ = chat_manager.create_chat(chat_id)
+        elif chat_id not in chat_manager.chats:
+            chat_id, _ = chat_manager.create_chat(chat_id) # Cria com o ID fornecido se não existir
         
         print(f"DEBUG na rota /query: Recebido chat_id: {chat_id}, user_input: '{user_input}'", flush=True) # DEBUG
         response = process_query_simple(user_input, chat_id)
