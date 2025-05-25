@@ -322,13 +322,16 @@ def process_query_simple(user_input, chat_id):
             print(f"DEBUG: Usuário respondeu alternativa: '{user_lower}'", flush=True)
             is_correct = (user_lower == correct_answer_letter)
             
+            # --- NOVO PROMPT DE EXPLICAÇÃO MAIS DIRETO ---
             explanation_prompt = (
-                f"A questão era: '{question_data['pergunta']}'\n"
+                f"Para a questão: '{question_data['pergunta']}'\n"
                 f"A alternativa correta é '({correct_answer_letter.upper()})'. "
-                f"Forneça uma justificativa concisa e quimicamente ACURADA para esta alternativa, "
+                f"Forneça a justificativa conceitual e quimicamente ACURADA para esta alternativa, "
                 f"focando nos princípios da eletroquímica. "
-                f"**NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**"
+                f"Seja conciso e preciso. **NÃO re-afirme a letra da alternativa correta, "
+                f"NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**"
             )
+            # --- FIM NOVO PROMPT ---
             
             # Chama a IA para a explicação
             explanation_messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": explanation_prompt}]
@@ -340,9 +343,6 @@ def process_query_simple(user_input, chat_id):
                     explanation_response = "Não foi possível gerar uma explicação no momento. Verifique as chaves API."
             else:
                 explanation_response = "Sistema de IA para explicações não disponível."
-
-            # A limpeza de current_question_data NÃO ACONTECE AQUI.
-            # Ela só ocorrerá se o usuário disser 'não' ou uma nova questão for gerada.
             
             if is_correct:
                 response = f"Você acertou! A resposta correta é ({correct_answer_letter.upper()}).\n{explanation_response}\nDeseja fazer outra questão? (sim/não)"
@@ -352,33 +352,27 @@ def process_query_simple(user_input, chat_id):
             return response
         
         # Lógica para "sim" ou "não" após uma questão respondida
-        last_ai_message = chat_session['history'][-1][1].lower() if chat_session['history'] else ""
-        print(f"DEBUG: last_ai_message para sim/não check: '{last_ai_message}'", flush=True) # DEBUG
-        if "deseja fazer outra questão?" in last_ai_message:
-            print(f"DEBUG: Usuário respondeu sim/não: '{user_lower}'", flush=True)
-            if user_lower == "sim":
-                print("DEBUG: Usuário disse 'sim'. Tentando gerar nova questão.", flush=True) # DEBUG
-                if questions_list:
-                    q = random.choice(questions_list)
-                    chat_session['current_question_data'] = q # Armazena a nova questão
-                    print(f"DEBUG: Nova questão gerada: {q.get('pergunta', 'N/A')}", flush=True) # DEBUG
-                    return q.get('pergunta', "Não foi possível gerar uma questão válida no momento. Tente novamente.")
-                else:
-                    print("DEBUG: questions_list está vazia. Não há mais questões disponíveis.", flush=True) # DEBUG
-                    return "Não há mais questões disponíveis."
-            elif user_lower == "não":
-                print("DEBUG: Usuário disse 'não'. Limpando current_question_data.", flush=True) # DEBUG
-                chat_session['current_question_data'] = None # AGORA SIM: Garante que a questão seja limpa
-                return "Ótimo. Deseja mais alguma coisa?"
+        # Prioriza a verificação de "sim" ou "não" se uma questão está ativa
+        if user_lower == "sim":
+            print("DEBUG: Usuário disse 'sim'. Tentando gerar nova questão.", flush=True) # DEBUG
+            if questions_list:
+                q = random.choice(questions_list)
+                chat_session['current_question_data'] = q # Armazena a nova questão
+                print(f"DEBUG: Nova questão gerada: {q.get('pergunta', 'N/A')}", flush=True) # DEBUG
+                return q.get('pergunta', "Não foi possível gerar uma questão válida no momento. Tente novamente.")
             else:
-                print("DEBUG: Resposta inesperada após 'outra questão?'. Caindo para LLM geral.", flush=True)
-                chat_session['current_question_data'] = None # Limpa o estado do quiz
-                # Não retorna aqui, para que caia na lógica do LLM geral.
-                response = "" # Reseta a resposta para que a lógica geral possa preenchê-la
+                print("DEBUG: questions_list está vazia. Não há mais questões disponíveis.", flush=True) # DEBUG
+                return "Não há mais questões disponíveis."
+        elif user_lower == "não":
+            print("DEBUG: Usuário disse 'não'. Limpando current_question_data.", flush=True) # DEBUG
+            chat_session['current_question_data'] = None # AGORA SIM: Garante que a questão seja limpa
+            return "Ótimo. Deseja mais alguma coisa?"
         else:
-            print("DEBUG: Não é uma alternativa e não é resposta a 'outra questão?'. Caindo para LLM geral.", flush=True)
+            # Se não for uma alternativa e nem "sim"/"não", trata como consulta geral
+            print("DEBUG: Não é uma alternativa e não é sim/não. Caindo para LLM geral.", flush=True)
             chat_session['current_question_data'] = None # Limpa o estado do quiz
-            pass # Cai para a lógica do LLM geral
+            # Continua para a lógica do LLM geral abaixo
+            response = "" # Reseta a resposta para que a lógica geral possa preenchê-la
     else: 
         print("DEBUG: current_question_data é None. Não está no modo de resposta/sim/não.", flush=True)
         pass # Cai para a lógica do LLM geral
@@ -513,7 +507,7 @@ if __name__ == '__main__':
     
     print("🚀 PilhIA Ultra Leve (Direct API)", flush=True)
     print(f"🌐 Porta: {port}", flush=True)
-    print(f"📊 APIs: {len(API_keys)} chaves carregadas (de variáveis de ambiente)", flush=True)
+    print(f"📊 APIs: {len(API_KEYS)} chaves carregadas (de variáveis de ambiente)", flush=True)
     print(f"📚 Questões: {len(questions_list)} questões carregadas", flush=True)
     print(f"📖 Docs: {'✓' if simple_docs else '✗'} documentos de contexto carregados", flush=True)
     print(f"🧪 Tabela de Potenciais: {'✓' if tabela_potenciais_json else '✗'} carregada", flush=True)
