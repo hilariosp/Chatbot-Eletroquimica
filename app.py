@@ -145,7 +145,7 @@ Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 - Confirme se respondeu adequadamente à dúvida
 """
 
-def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.2-1b-instruct:free"):
+def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.3-8b-instruct:free"):
     """
     Chama a API do OpenRouter diretamente usando requests.
     """
