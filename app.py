@@ -51,7 +51,7 @@ class MiniChatManager:
     def add_message(self, chat_id, user_msg, ai_msg):
         if chat_id in self.chats:
             user_msg = user_msg[:200]
-            ai_msg = ai_msg[:500]
+            ai_msg = ai_msg[:500] # Limita a mensagem para o histórico
             
             self.chats[chat_id]['history'].append((user_msg, ai_msg))
             self.chats[chat_id]['last_activity'] = time.time()
@@ -120,32 +120,33 @@ SYSTEM_PROMPT = """
 Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 
 1. COMPORTAMENTO:
-- Mantenha respostas claras e concisas
-- Se fornecida documentação de referência, baseie-se nela para responder
-- Se alguém perguntar o teu nome, diga que é PilhIA
-- Se não souber a resposta ou a pergunta estiver incompleta como por exemplo 'o que é a', diga apenas "Não sei responder isso"
+- Mantenha respostas claras e concisas.
+- **Resuma suas respostas para serem diretas e não excederem 800 caracteres.**
+- Se fornecida documentação de referência, baseie-se nela para responder.
+- Se alguém perguntar o teu nome, diga que é PilhIA.
+- Se não souber a resposta ou a pergunta estiver incompleta como por exemplo 'o que é a', diga apenas "Não sei responder isso".
 - Se for perguntado algo fora de eletroquimica, baterias, eletrolise e pilha de daniell, diga que não pode responder a pergunta por estar fora do assunto, mas se sugerir uma explicação usando analogias mas que ainda seja sobre eletroquimica aceite.
 - Se pedir questões sobre eletroquimica, você deve pegar elas diretamente da pasta 'questoes', e soltar apenas uma por vez.
 
 2. FORMATO:
-- Use parágrafos curtos e marcadores quando apropriado
-- Não faça uso de formatações e latex no texto, inclusive nas respostas em que envolvam formulas
-- Para listas longas, sugira uma abordagem passo a passo
-- Para as questões pedidas, você deve copiar ela totalmente, menos a resposta correta (a não ser que o usuário peça questões com resposta correta)
+- Use parágrafos curtos e marcadores quando apropriado.
+- Não faça uso de formatações e latex no texto, inclusive nas respostas em que envolvam formulas.
+- Para listas longas, sugira uma abordagem passo a passo.
+- Para as questões pedidas, você deve copiar ela totalmente, menos a resposta correta (a não ser que o usuário peça questões com resposta correta).
 
 3. RESTRIÇÕES:
-- Nunca invente informações que não estejam na documentação
-- Não responda perguntas sobre temas sensíveis ou ilegais
-- Não gere conteúdo ofensivo ou discriminatório
-- Mantenha o foco no assunto da consulta
+- Nunca invente informações que não estejam na documentação.
+- Não responda perguntas sobre temas sensíveis ou ilegais.
+- Não gere conteúdo ofensivo ou discriminatório.
+- Mantenha o foco no assunto da consulta.
 
 4. INTERAÇÃO:
-- Peça esclarecimentos se a pergunta for ambígua
-- Para perguntas complexas, sugira dividi-las em partes menores
-- Confirme se respondeu adequadamente à dúvida
+- Peça esclarecimentos se a pergunta for ambígua.
+- Para perguntas complexas, sugira dividi-las em partes menores.
+- Confirme se respondeu adequadamente à dúvida.
 """
 
-def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.3-8b-instruct:free"):
+def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.2-1b-instruct:free"):
     """
     Chama a API do OpenRouter diretamente usando requests.
     """
@@ -157,7 +158,7 @@ def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.3-8b-instru
         "model": model,
         "messages": messages,
         "temperature": 0.5,
-        "max_tokens": 800
+        "max_tokens": 800 # Mantém o limite de tokens para alinhar com o slicing
     }
     
     try:
@@ -175,33 +176,54 @@ def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.3-8b-instru
         return None
 
 def load_simple_documents():
-    """Carrega documentos como texto simples."""
+    """Carrega documentos como texto simples de múltiplas pastas."""
     content = ""
-    try:
-        doc_path = "documentos/basededados"
-        if not Path(doc_path).exists():
-            print(f"⚠️ Pasta de documentos não encontrada: {doc_path}", flush=True)
-            return ""
-        
+    # Define as pastas de onde os documentos devem ser carregados
+    paths_to_load = ["documentos/basededados", "documentos/tabelas"]
+
+    for doc_folder in paths_to_load:
+        # Verifica se a pasta existe
+        if not Path(doc_folder).exists():
+            print(f"⚠️ Pasta de documentos não encontrada: {doc_folder}", flush=True)
+            continue # Pula para a próxima pasta se esta não existir
+
+        print(f"🔎 Carregando documentos de: {doc_folder}", flush=True)
         count = 0
-        for file in os.listdir(doc_path):
-            if count >= 3:
+        # Itera sobre os arquivos na pasta
+        for file in os.listdir(doc_folder):
+            # Limita o número de arquivos lidos por pasta ou no total (ajuste conforme necessário)
+            # Para este exemplo, vou manter um limite geral de 3 arquivos no total para cada pasta
+            if count >= 3: 
                 break
-                
-            if file.endswith(".txt"):
+            
+            # Garante que estamos lendo apenas arquivos de texto ou JSON
+            if file.endswith(".txt") or file.endswith(".json"):
                 try:
-                    with open(os.path.join(doc_path, file), 'r', encoding='utf-8') as f:
-                        file_content = f.read()[:2000]
-                    content += f"\n--- {file} ---\n{file_content}\n"
-                    count += 1
-                except Exception as e:
-                    print(f"⚠️ Erro ao ler documento '{file}': {e}", flush=True)
-                    continue
+                    file_path = os.path.join(doc_folder, file)
+                    file_text = ""
                     
-        return content[:8000]
-    except Exception as e:
-        print(f"⚠️ Erro geral ao carregar documentos simples: {e}", flush=True)
-        return ""
+                    if file.endswith(".json"):
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            json_data = json.load(f)
+                            # Converte o JSON para uma string formatada para a IA ler
+                            file_text = json.dumps(json_data, indent=2, ensure_ascii=False)
+                    else: # Assume .txt
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            file_text = f.read()
+
+                    # Adiciona o conteúdo do arquivo ao contexto, limitando cada arquivo a 2000 caracteres
+                    content += f"\n--- Conteúdo de {doc_folder}/{file} ---\n{file_text[:2000]}\n"
+                    count += 1
+                    print(f"  ✅ Lido: {file_path}", flush=True)
+
+                except Exception as e:
+                    print(f"⚠️ Erro ao ler documento '{file_path}': {e}", flush=True)
+                    continue
+            else:
+                print(f"  ⚠️ Ignorado: {file_path} (não é .txt ou .json)", flush=True)
+                    
+    # Retorna o conteúdo total, limitado a 8000 caracteres (ajuste conforme o modelo precisar e puder processar)
+    return content[:8000]
 
 # Carrega documentos como texto simples (executado na inicialização)
 simple_docs = load_simple_documents()
@@ -210,6 +232,7 @@ def process_query_simple(user_input, chat_id):
     """Processa query de forma ultra simples, usando requests para o OpenRouter."""
     user_lower = user_input.lower()
     
+    # Lógica para questões (mantida)
     if "questão" in user_lower or "questões" in user_lower:
         if questions_list:
             q = random.choice(questions_list)
@@ -236,7 +259,9 @@ def process_query_simple(user_input, chat_id):
         ai_response = call_openrouter_api(messages, api_key)
         
         if ai_response:
-            return ai_response[:800] # Limita resposta
+            # O slicing final aqui é uma garantia, mas a instrução no SYSTEM_PROMPT
+            # e o max_tokens devem fazer o trabalho principal de resumo.
+            return ai_response[:800] 
         else:
             return "⚠️ Erro na comunicação com a IA. Por favor, verifique as chaves API e os logs do servidor."
     else:
@@ -305,9 +330,9 @@ def health():
         'status': 'ok',
         'chats': len(chat_manager.chats),
         'questions': len(questions_list),
-        'openrouter_available': OPENROUTER_API_AVAILABLE, # Atualiza para refletir a nova variável
+        'openrouter_available': OPENROUTER_API_AVAILABLE,
         'memory': 'optimized',
-        'llm_mode': 'requests_direct' # Indica o modo de LLM
+        'llm_mode': 'requests_direct'
     })
 
 # ===== CONFIGURAÇÃO PARA RENDER =====
