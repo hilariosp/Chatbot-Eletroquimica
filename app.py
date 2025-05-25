@@ -56,7 +56,7 @@ class MiniChatManager:
     def add_message(self, chat_id, user_msg, ai_msg):
         if chat_id in self.chats:
             user_msg = user_msg[:200]
-            ai_msg = ai_msg[:500] # Limita a mensagem para o histórico
+            ai_msg = ai_msg[:1500] # Limita a mensagem para o histórico (AUMENTADO)
             
             self.chats[chat_id]['history'].append((user_msg, ai_msg))
             self.chats[chat_id]['last_activity'] = time.time()
@@ -159,7 +159,7 @@ Você é um assistente inteligente e prestativo com as seguintes diretrizes:
 
 1. COMPORTAMENTO:
 - Mantenha respostas claras e concisas.
-- **Resuma suas respostas para serem diretas e não excederem 800 caracteres.**
+- **Forneça respostas diretas e completas.**
 - Se fornecida documentação de referência, baseie-se nela para responder.
 - Se alguém perguntar o teu nome, diga que é PilhIA.
 - Se não souber a resposta ou a pergunta estiver incompleta como por exemplo 'o que é a', diga apenas "Não sei responder isso".
@@ -197,7 +197,7 @@ def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.2-1b-instru
         "model": model,
         "messages": messages,
         "temperature": 0.5,
-        "max_tokens": 800 # Mantém o limite de tokens para alinhar com o slicing
+        "max_tokens": 1500 # AUMENTADO para permitir respostas mais longas
     }
     
     try:
@@ -217,8 +217,6 @@ def call_openrouter_api(messages, api_key, model="meta-llama/llama-3.2-1b-instru
 def load_simple_documents():
     """Carrega documentos como texto simples de múltiplas pastas."""
     content = ""
-    # Define as pastas de onde os documentos devem ser carregados
-    # A tabela de potenciais será carregada separadamente por carregar_tabela_potenciais_json
     paths_to_load = ["documentos/basededados"] 
 
     for doc_folder in paths_to_load:
@@ -297,7 +295,7 @@ def calcular_voltagem_pilha_json(eletrodos_str):
 def process_query_simple(user_input, chat_id):
     """Processa query de forma ultra simples, usando requests para o OpenRouter."""
     user_lower = user_input.lower()
-    chat_session = chat_manager.get_chat(chat_id)
+    chat_session = chat_manager.chats.get(chat_id)
 
     print(f"DEBUG: Input recebido: '{user_input}', Chat ID: '{chat_id}'", flush=True)
     print(f"DEBUG: chat_session existe: {bool(chat_session)}", flush=True)
@@ -307,22 +305,36 @@ def process_query_simple(user_input, chat_id):
     if "calcular a voltagem de uma pilha de" in user_lower:
         print("DEBUG: Entrou na lógica de cálculo de voltagem.", flush=True)
         eletrodos_str = user_lower.split("de uma pilha de")[1].strip()
-        chat_session['current_question_data'] = None # Limpa o estado do quiz se o usuário iniciar um cálculo
         return calcular_voltagem_pilha_json(eletrodos_str)
     
     # 2. Lógica para responder a questões (se uma questão foi gerada anteriormente)
     # E também para lidar com "sim/não" após a resposta
     if chat_session and chat_session['current_question_data']:
-        print("DEBUG: current_question_data existe. Verificando resposta ou sim/não.", flush=True)
+        print(f"DEBUG: current_question_data existe. Verificando resposta ou sim/não. user_input: '{user_lower}'", flush=True) # DEBUG
         question_data = chat_session['current_question_data']
         correct_answer_letter = question_data['resposta_correta'].lower()
+        
+        # Lógica para "sim" ou "não" após uma questão respondida (PRIORIDADE ALTA DENTRO DO QUIZ)
+        if user_lower == "sim":
+            print("DEBUG: Usuário disse 'sim'. Tentando gerar nova questão.", flush=True) # DEBUG
+            if questions_list:
+                q = random.choice(questions_list)
+                chat_session['current_question_data'] = q # Armazena a nova questão
+                print(f"DEBUG: Nova questão gerada: {q.get('pergunta', 'N/A')}", flush=True) # DEBUG
+                return q.get('pergunta', "Não foi possível gerar uma questão válida no momento. Tente novamente.")
+            else:
+                print("DEBUG: questions_list está vazia. Não há mais questões disponíveis.", flush=True) # DEBUG
+                return "Não há mais questões disponíveis."
+        elif user_lower == "não":
+            print("DEBUG: Usuário disse 'não'. Limpando current_question_data.", flush=True) # DEBUG
+            chat_session['current_question_data'] = None # AGORA SIM: Garante que a questão seja limpa
+            return "Ótimo. Deseja mais alguma coisa?"
         
         # Verifica se a entrada do usuário é uma alternativa (a, b, c, d, e)
         if user_lower in ['a', 'b', 'c', 'd', 'e']:
             print(f"DEBUG: Usuário respondeu alternativa: '{user_lower}'", flush=True)
             is_correct = (user_lower == correct_answer_letter)
             
-            # --- NOVO PROMPT DE EXPLICAÇÃO MAIS DIRETO ---
             explanation_prompt = (
                 f"Para a questão: '{question_data['pergunta']}'\n"
                 f"A alternativa correta é '({correct_answer_letter.upper()})'. "
@@ -331,7 +343,6 @@ def process_query_simple(user_input, chat_id):
                 f"Seja conciso e preciso. **NÃO re-afirme a letra da alternativa correta, "
                 f"NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**"
             )
-            # --- FIM NOVO PROMPT ---
             
             # Chama a IA para a explicação
             explanation_messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": explanation_prompt}]
@@ -350,31 +361,14 @@ def process_query_simple(user_input, chat_id):
                 response = f"Você errou. A resposta correta é ({correct_answer_letter.upper()}).\n{explanation_response}\nDeseja fazer outra questão? (sim/não)"
             
             return response
-        
-        # Lógica para "sim" ou "não" após uma questão respondida
-        # Prioriza a verificação de "sim" ou "não" se uma questão está ativa
-        if user_lower == "sim":
-            print("DEBUG: Usuário disse 'sim'. Tentando gerar nova questão.", flush=True) # DEBUG
-            if questions_list:
-                q = random.choice(questions_list)
-                chat_session['current_question_data'] = q # Armazena a nova questão
-                print(f"DEBUG: Nova questão gerada: {q.get('pergunta', 'N/A')}", flush=True) # DEBUG
-                return q.get('pergunta', "Não foi possível gerar uma questão válida no momento. Tente novamente.")
-            else:
-                print("DEBUG: questions_list está vazia. Não há mais questões disponíveis.", flush=True) # DEBUG
-                return "Não há mais questões disponíveis."
-        elif user_lower == "não":
-            print("DEBUG: Usuário disse 'não'. Limpando current_question_data.", flush=True) # DEBUG
-            chat_session['current_question_data'] = None # AGORA SIM: Garante que a questão seja limpa
-            return "Ótimo. Deseja mais alguma coisa?"
         else:
-            # Se não for uma alternativa e nem "sim"/"não", trata como consulta geral
-            print("DEBUG: Não é uma alternativa e não é sim/não. Caindo para LLM geral.", flush=True)
+            # Se não for uma alternativa e não for "sim"/"não", trata como consulta geral
+            print("DEBUG: Não é uma alternativa e não é sim/não. Caindo para LLM geral (dentro do quiz).", flush=True)
             chat_session['current_question_data'] = None # Limpa o estado do quiz
             # Continua para a lógica do LLM geral abaixo
             response = "" # Reseta a resposta para que a lógica geral possa preenchê-la
     else: 
-        print("DEBUG: current_question_data é None. Não está no modo de resposta/sim/não.", flush=True)
+        print("DEBUG: current_question_data é None. Não está no modo de resposta/sim/não. Caindo para LLM geral.", flush=True)
         pass # Cai para a lógica do LLM geral
     
     # 3. Lógica para gerar questões (se não estiver respondendo uma questão ou cálculo)
@@ -407,7 +401,7 @@ def process_query_simple(user_input, chat_id):
         ai_response = call_openrouter_api(messages, api_key)
         
         if ai_response:
-            return ai_response[:800] 
+            return ai_response[:1500] # AUMENTADO para permitir respostas mais longas
         else:
             return "⚠️ Erro na comunicação com a IA. Por favor, verifique as chaves API e os logs do servidor."
     else:
