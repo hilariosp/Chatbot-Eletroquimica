@@ -1,0 +1,62 @@
+[
+  {
+    "topico": "Fundamentos da Eletroquímica",
+    "conteudo": "A eletroquímica estuda a relação entre reações químicas e energia elétrica através de processos chamados reações de oxirredução (redox). Essas reações envolvem sempre a transferência de elétrons entre substâncias.",
+    "palavras_chave": ["eletroquímica", "reações químicas", "energia elétrica", "oxirredução", "redox", "transferência de elétrons", "fundamentos"]
+  },
+  {
+    "topico": "Reações de Oxirredução",
+    "conteudo": "Toda reação redox possui dois componentes essenciais: Oxidação: Processo onde uma substância perde elétrons (Aumenta seu número de oxidação). Exemplo: Zinco metálico (Zn) se transforma em íon zinco (Zn2+) liberando 2 elétrons. Redução: Processo onde uma substância ganha elétrons (Diminui seu número de oxidação). Exemplo: Íon cobre (Cu2+) recebe 2 elétrons e vira cobre metálico (Cu).",
+    "palavras_chave": ["oxidação", "redução", "redox", "perda de elétrons", "ganho de elétrons", "número de oxidação", "zinco", "cobre", "semi-reações"]
+  },
+  {
+    "topico": "Tabela Completa de Potenciais Padrão de Redução",
+    "conteudo": "Esta tabela mostra a tendência de cada substância em ganhar elétrons (redução) em condições padrão (25°C, 1 atm, concentração 1 mol/L):\nSemi-reação de redução | Potencial (V)\nLi+ + e- → Li(s) | -3,04\nK+ + e- → K(s) | -2,92\nCa2+ + 2e- → Ca(s) | -2,87\nNa+ + e- → Na(s) | -2,71\nMg2+ + 2e- → Mg(s) | -2,37\nAl3+ + 3e- → Al(s) | -1,66\nZn2+ + 2e- → Zn(s) | -0,76\nFe2+ + 2e- → Fe(s) | -0,44\nNi2+ + 2e- → Ni(s) | -0,25\nSn2+ + 2e- → Sn(s) | -0,14\nPb2+ + 2e- → Pb(s) | -0,13\n2H+ + 2e- → H2(g) | 0,00\nCu2+ + 2e- → Cu(s) | +0,34\nAg+ + e- → Ag(s) | +0,80\nAu3+ + 3e- → Au(s) | +1,50\nMnO4- + 8H+ + 5e- → Mn2+ + 4H2O | +1,51\nCr2O72- + 14H+ + 6e- → 2Cr3+ + 7H2O | +1,33",
+    "palavras_chave": ["potenciais de redução", "tabela de potenciais", "E°", "condições padrão", "semi-reações", "metais", "voltagem", "cálculo de pilha"]
+  },
+  {
+    "topico": "Cálculo de Potenciais e Espontaneidade",
+    "conteudo": "Para determinar se uma reação redox ocorre espontaneamente: Identifique as semi-reações de oxidação e redução. Consulte os potenciais padrão na tabela. Calcule a diferença de potencial (ΔE°): ΔE° = E°red(cátodo) - E°red(ânodo). Se ΔE° > 0: Reação espontânea. Se ΔE° < 0: Reação não espontânea (precisa de energia externa). Exemplo Prático: Reação entre dicromato (Cr2O72-) e ferro (Fe2+): Redução do dicromato: +1,33 V. Oxidação do Fe2+ para Fe3+: -0,77 V. ΔE° = 1,33 - (-0,77) = +0,56 V (reação espontânea).",
+    "palavras_chave": ["cálculo de potencial", "espontaneidade", "ΔE°", "reação espontânea", "reação não espontânea", "cátodo", "ânodo", "dicromato", "ferro"]
+  },
+  {
+    "topico": "Pilhas e Eletrólise",
+    "conteudo": "4.1 Pilhas (Células Galvânicas): Dispositivos que convertem energia química em elétrica através de reações espontâneas. Exemplo clássico: Pilha de Daniell (Zn-Cu). Ânodo (Zn): Zn → Zn2+ + 2e- (E°oxi = +0,76 V). Cátodo (Cu): Cu2+ + 2e- → Cu (E°red = +0,34 V). Diferença de potencial: ΔE° = 1,10 V. 4.2 Eletrólise: Processo não espontâneo que usa energia elétrica para provocar reações redox. Segue as Leis de Faraday: A massa de substância produzida é proporcional à quantidade de carga elétrica. Massas equivalentes de diferentes elementos são produzidas pela mesma carga. Aplicações industriais: Produção de alumínio, Refinamento de metais, Galvanoplastia.",
+    "palavras_chave": ["pilhas", "células galvânicas", "eletrólise", "Pilha de Daniell", "ânodo", "cátodo", "Leis de Faraday", "galvanoplastia", "produção de alumínio", "refinamento de metais"]
+  },
+  {
+    "topico": "Baterias e Acumuladores",
+    "conteudo": "Tipo | Reações | Características\nChumbo-Ácido | Pb + PbO2 + 2H2SO4 → 2PbSO4 + 2H2O | Usada em automóveis\nLi-Íon | LiCoO2 + C ↔ Li1-xCoO2 + LixC | Eletrônicos portáteis\nNiMH | NiOOH + MH ↔ Ni(OH)2 + M | Recarregável, menos tóxica",
+    "palavras_chave": ["baterias", "acumuladores", "chumbo-ácido", "íon-lítio", "NiMH", "pilhas recarregáveis", "eletrônicos", "automóveis"]
+  },
+  {
+    "topico": "Corrosão e Proteção",
+    "conteudo": "Mecanismos de corrosão: Corrosão úmida (com eletrólitos), Corrosão galvânica (contato entre metais diferentes). Métodos de proteção: Galvanização (revestimento com zinco), Proteção catódica, Revestimentos protetores.",
+    "palavras_chave": ["corrosão", "proteção contra corrosão", "galvanização", "proteção catódica", "corrosão úmida", "corrosão galvânica"]
+  },
+  {
+    "topico": "Equações Fundamentais",
+    "conteudo": "Equação de Nernst: E = E° - (0,0592/n) * log Q. Relação com Energia Livre: ΔG° = -nFE°. Constante de Equilíbrio: log K = (nE°)/0,0592.",
+    "palavras_chave": ["equação de Nernst", "energia livre de Gibbs", "constante de equilíbrio", "fórmulas eletroquímicas", "cálculos de potencial"]
+  },
+  {
+    "topico": "Estratégias para Resolução de Problemas de Eletroquímica",
+    "conteudo": "Sempre comece identificando as semi-reações de oxidação e redução. Consulte a tabela de potenciais padrão. Balanceie o número de elétrons transferidos. Para meios ácidos ou básicos: Ácido: balanceie com H+ e H2O. Básico: balanceie com OH- e H2O. Calcule o potencial total para verificar a espontaneidade.",
+    "palavras_chave": ["resolução de problemas", "balanceamento de reações", "meio ácido", "meio básico", "semi-reações", "potenciais padrão"]
+  },
+  {
+    "topico": "Aplicações Tecnológicas Modernas",
+    "conteudo": "Células a combustível, Supercapacitores, Sensores eletroquímicos, Eletrossíntese de compostos orgânicos.",
+    "palavras_chave": ["células a combustível", "supercapacitores", "sensores eletroquímicos", "eletrossíntese", "tecnologia eletroquímica", "aplicações"]
+  },
+  {
+    "topico": "Impacto Ambiental e Sustentabilidade",
+    "conteudo": "Desafios: Contaminação por metais pesados, Descarte de baterias, Consumo de recursos. Soluções: Reciclagem de componentes, Desenvolvimento de baterias mais limpas, Legislação específica para descarte.",
+    "palavras_chave": ["impacto ambiental", "sustentabilidade", "descarte de pilhas", "descarte de baterias", "reciclagem de baterias", "metais pesados", "legislação", "baterias limpas", "meio ambiente"]
+  },
+  {
+    "topico": "Descarte de Pilhas e Baterias",
+    "conteudo": "O descarte inadequado de pilhas e baterias é um problema ambiental significativo devido à presença de metais pesados tóxicos (como mercúrio, chumbo, cádmio e níquel) que podem contaminar o solo e a água. A legislação ambiental exige a coleta seletiva e a reciclagem desses materiais. Muitos fabricantes e pontos de venda oferecem locais de coleta específicos. A reciclagem permite a recuperação de metais valiosos e a neutralização de substâncias perigosas, minimizando o impacto ambiental e promovendo a economia circular.",
+    "palavras_chave": ["descarte de pilhas", "descarte de baterias", "reciclagem de pilhas", "reciclagem de baterias", "contaminação ambiental", "metais pesados", "legislação de descarte", "coleta seletiva", "impacto ambiental de pilhas"]
+  }
+]
