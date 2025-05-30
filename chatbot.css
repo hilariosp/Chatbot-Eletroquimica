@@ -1,0 +1,515 @@
+:root {
+    --bg-dark: #111;
+    --bg-darker: #000;
+    --accent-color: #dc3545;
+    --text-light: #f8f9fa;
+}
+
+/* --- General Styles --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-darker);
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: var(--accent-color);
+}
+
+a:hover {
+    color: var(--text-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-light);
+    margin-bottom: 0.5em;
+}
+
+.text-white {
+    color: var(--text-light) !important;
+}
+
+.text-danger {
+    color: var(--accent-color) !important;
+}
+
+.btn-danger {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-light);
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* A slightly darker red for hover */
+    border-color: #c82333;
+}
+
+.btn-custom {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 0.75rem 2rem;
+    border-radius: 0.3rem;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Navbar (index.html) --- */
+.navbar-custom {
+    background-color: var(--bg-dark);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.navbar-brand h2 {
+    font-weight: 700;
+}
+
+.navbar-toggler-custom {
+    border-color: var(--accent-color);
+}
+
+.navbar-toggler-custom .navbar-toggler-icon {
+    color: var(--text-light);
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--accent-color) !important;
+}
+
+/* --- Hero Section (index.html) --- */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1542382902-b0542368c818') no-repeat center center/cover; /* Placeholder image, consider replacing */
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: var(--text-light);
+    position: relative;
+    overflow: hidden;
+    padding: 80px 0; /* Add padding for smaller screens */
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 80%);
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-section p.lead {
+    font-size: 1.25rem;
+    max-width: 700px;
+    margin: 0 auto 3rem auto;
+}
+
+/* --- Features Section (index.html) --- */
+section.py-5 {
+    background-color: var(--bg-darker);
+}
+
+.card-custom {
+    background-color: var(--bg-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    color: var(--text-light);
+    height: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.card-custom h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.card-custom p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- CTA Section (index.html) --- */
+.bg-dark {
+    background-color: var(--bg-dark) !important;
+}
+
+.cta-section h2 {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+/* --- Footer (index.html) --- */
+footer {
+    background-color: var(--bg-dark);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 1.5rem 0;
+}
+
+/* --- Chatbot Page Styles (chatbot.html) --- */
+.container-fluid.p-0 {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    height: 100%;
+    left: 0;
+    top: 0;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.sidebar-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 1rem;
+}
+
+.sidebar.hidden {
+    transform: translateX(-280px);
+}
+
+.sidebar h2 {
+    font-weight: 700;
+}
+
+.sidebar-toggler {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.new-chat-btn {
+    width: calc(100% - 2rem); /* Adjust for padding */
+    padding: 0.75rem 1rem;
+    margin: 1rem;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 0.5rem;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.new-chat-btn:hover {
+    background-color: #c82333;
+}
+
+#chat-history-container {
+    padding: 0 1rem;
+}
+
+.chat-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.chat-history-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.chat-history-item.active {
+    background-color: rgba(220, 53, 69, 0.3); /* Lighter accent color */
+}
+
+.chat-history-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    color: var(--text-light);
+}
+
+.chat-history-item .delete-chat-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 0.5rem;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+.chat-history-item .delete-chat-btn:hover {
+    color: var(--accent-color);
+}
+
+.content {
+    margin-left: 280px; /* Space for the sidebar */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-darker);
+    transition: margin-left 0.3s ease-in-out;
+}
+
+.content.sidebar-hidden {
+    margin-left: 0;
+}
+
+.chat-area {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Keeps content at the bottom */
+}
+
+.chat-area .text-center {
+    flex-grow: 1; /* Pushes the input area to the bottom */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding-bottom: 100px; /* Space for the input area */
+}
+
+.chat-area h2 {
+    font-weight: 700;
+}
+
+.message-bubble {
+    display: flex;
+    margin-bottom: 1rem;
+    max-width: 80%;
+}
+
+.user-message {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.bot-message {
+    justify-content: flex-start;
+    margin-right: auto;
+}
+
+.message-content {
+    padding: 0.75rem 1.25rem;
+    border-radius: 1.25rem;
+    word-wrap: break-word;
+    white-space: pre-wrap; /* Preserve whitespace and breaks */
+    font-size: 1rem;
+    max-width: 100%;
+}
+
+.user-message .message-content {
+    background-color: var(--accent-color);
+    color: var(--text-light);
+    border-bottom-right-radius: 0.25rem;
+}
+
+.bot-message .message-content {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom-left-radius: 0.25rem;
+}
+
+/* Efeito hover nos botões de deletar */
+.delete-chat-btn:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s;
+}
+
+/* Input Area (chatbot.html) */
+.input-area {
+    padding: 1rem;
+    background-color: var(--bg-darker);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    box-sizing: border-box;
+}
+
+.input-area .d-flex {
+    background-color: var(--bg-dark) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem !important;
+}
+
+#user-input {
+    flex-grow: 1;
+    background-color: transparent;
+    border: none;
+    color: var(--text-light);
+    resize: none;
+    overflow: hidden;
+    min-height: 42px; /* Same height as button */
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    outline: none;
+    box-shadow: none;
+}
+
+#user-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+#send-button {
+    background-color: var(--accent-color);
+    border: none;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color 0.3s ease;
+}
+
+#send-button:hover {
+    background-color: #c82333;
+}
+
+/* Confirmation Dialog (chatbot.html) */
+.confirm-delete {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.confirm-delete-box {
+    background-color: var(--bg-dark);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    color: var(--text-light);
+}
+
+.confirm-delete-box h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.confirm-delete-box p {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1.5rem;
+}
+
+.confirm-delete-box .btn {
+    min-width: 100px;
+}
+
+/* --- Responsiveness --- */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 250px;
+        transform: translateX(-250px);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .content {
+        margin-left: 0;
+    }
+
+    .sidebar-toggler {
+        display: block !important;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-section p.lead {
+        font-size: 1rem;
+    }
+
+    .display-5 {
+        font-size: 2rem;
+    }
+
+    .card-custom {
+        padding: 1.5rem !important;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+    }
+
+    .card-custom h3 {
+        font-size: 1.5rem;
+    }
+
+    .message-bubble {
+        max-width: 95%;
+    }
+}

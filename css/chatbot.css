@@ -5,6 +5,7 @@
     --text-light: #f8f9fa;
 }
 
+/* --- General Styles --- */
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bg-dark);
@@ -12,16 +13,91 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    line-height: 1.6; /* Added from previous output */
 }
 
-a{
-
+a {
     text-decoration: none;
+    color: var(--accent-color); /* Added from previous output */
+}
+
+a:hover {
+    color: var(--text-light); /* Added from previous output */
+}
+
+h1, h2, h3, h4, h5, h6 { /* Added from previous output */
+    color: var(--text-light);
+    margin-bottom: 0.5em;
+}
+
+.text-white { /* Added from previous output */
+    color: var(--text-light) !important;
+}
+
+.text-danger { /* Added from previous output */
+    color: var(--accent-color) !important;
+}
+
+.btn-danger { /* Added from previous output */
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-light);
+}
+
+.btn-danger:hover { /* Added from previous output */
+    background-color: #c82333; /* A slightly darker red for hover */
+    border-color: #c82333;
+}
+
+.btn-custom { /* Added from previous output */
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--text-light);
+    padding: 0.75rem 2rem;
+    border-radius: 0.3rem;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover { /* Added from previous output */
+    background-color: #c82333;
+    border-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .container-fluid {
     padding: 0 !important;
 }
+
+/* --- Navbar (index.html, added from previous output) --- */
+.navbar-custom {
+    background-color: var(--bg-dark);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.navbar-brand h2 {
+    font-weight: 700;
+}
+
+.navbar-toggler-custom {
+    border-color: var(--accent-color);
+}
+
+.navbar-toggler-custom .navbar-toggler-icon {
+    color: var(--text-light);
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--accent-color) !important;
+}
+
 
 /* Sidebar */
 .sidebar {
@@ -31,6 +107,34 @@ a{
     position: fixed;
     z-index: 1000;
     width: 260px;
+    display: flex; /* Added from previous output */
+    flex-direction: column; /* Added from previous output */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); /* Added from previous output */
+    left: 0; /* Added from previous output */
+    top: 0; /* Added from previous output */
+    transition: transform 0.3s ease-in-out; /* Added from previous output */
+}
+
+.sidebar.hidden { /* Added from previous output */
+    transform: translateX(-260px); /* Adjusted width */
+}
+
+.sidebar h2 { /* Added from previous output */
+    font-weight: 700;
+}
+
+.sidebar-toggler { /* Added from previous output */
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.sidebar-content { /* Added from previous output */
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 1rem;
 }
 
 /* Main Content */
@@ -40,6 +144,11 @@ a{
     display: flex;
     flex-direction: column;
     background-color: var(--bg-dark);
+    transition: margin-left 0.3s ease-in-out; /* Added from previous output */
+}
+
+.content.sidebar-hidden { /* Added from previous output */
+    margin-left: 0;
 }
 
 /* Chat Area */
@@ -48,13 +157,35 @@ a{
     overflow-y: auto;
     padding: 1rem;
     background-color: var(--bg-dark);
+    display: flex; /* Added from previous output */
+    flex-direction: column; /* Added from previous output */
+    justify-content: flex-end; /* Keeps content at the bottom, added from previous output */
 }
+
+.chat-area .text-center { /* Added from previous output */
+    flex-grow: 1; /* Pushes the input area to the bottom */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding-bottom: 100px; /* Space for the input area */
+}
+
+.chat-area h2 { /* Added from previous output */
+    font-weight: 700;
+}
+
 
 /* Input Area */
 .input-area {
     background-color: var(--bg-darker);
     padding: 1rem;
     border-top: 1px solid #333;
+    position: sticky; /* Added from previous output */
+    bottom: 0; /* Added from previous output */
+    width: 100%; /* Added from previous output */
+    left: 0; /* Added from previous output */
+    box-sizing: border-box; /* Added from previous output */
 }
 
 .input-area textarea {
@@ -69,6 +200,30 @@ a{
     width: 100%;
 }
 
+.input-area .d-flex { /* Added from previous output */
+    background-color: var(--bg-dark) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem !important;
+}
+
+#user-input { /* Added from previous output */
+    flex-grow: 1;
+    background-color: transparent;
+    border: none;
+    color: var(--text-light);
+    resize: none;
+    overflow: hidden;
+    min-height: 42px; /* Same height as button */
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    outline: none;
+    box-shadow: none;
+}
+
+#user-input::placeholder { /* Added from previous output */
+    color: rgba(255, 255, 255, 0.6);
+}
+
 /* Messages */
 .message {
     max-width: 85%;
@@ -77,6 +232,8 @@ a{
     line-height: 1.5;
     animation: fadeIn 0.3s ease-out;
     word-wrap: break-word;
+    opacity: 1; /* Added from previous output */
+    transition: opacity 0.5s; /* Added from previous output */
 }
 
 .user-message {
@@ -84,6 +241,7 @@ a{
     background-color: var(--accent-color);
     color: white;
     border-radius: 1rem 1rem 0 1rem;
+    justify-content: flex-end; /* Added from previous output */
 }
 
 .bot-message {
@@ -92,6 +250,32 @@ a{
     color: white;
     border-radius: 1rem 1rem 1rem 0;
     padding: 1rem;
+    justify-content: flex-start; /* Added from previous output */
+}
+
+.message-bubble { /* Added from previous output */
+    display: flex;
+    margin-bottom: 1rem;
+    max-width: 80%; /* Slightly more conservative max-width for bubbles */
+}
+
+.message-content {
+    margin-bottom: 0.25rem;
+    line-height: 1.6; /* Added from previous output */
+    word-wrap: break-word; /* Added from previous output */
+    white-space: pre-wrap; /* Preserve whitespace and breaks, added from previous output */
+    font-size: 1rem; /* Added from previous output */
+    max-width: 100%; /* Added from previous output */
+}
+
+.message-content strong { /* Added from previous output */
+    color: #f8f9fa;
+    font-weight: 600;
+}
+
+.message-content em { /* Added from previous output */
+    color: #ddd;
+    font-style: italic;
 }
 
 /* New Chat Button */
@@ -123,17 +307,76 @@ a{
         position: relative;
         border-right: none;
         border-bottom: 1px solid #333;
+        transform: translateX(0); /* Ensure sidebar is visible by default on mobile */
     }
-    
+
+    .sidebar.show { /* Added for explicit mobile sidebar toggle */
+        transform: translateX(0);
+    }
+
     .content {
         margin-left: 0 !important;
-        height: calc(100vh - 60px);
+        height: calc(100vh - 60px); /* Adjust height for static sidebar */
     }
-    
+
     .message {
         max-width: 90%;
     }
+
+    .sidebar-toggler { /* Added from previous output */
+        display: block !important;
+    }
+
+    .hero-section h1 { /* Added from previous output */
+        font-size: 2.5rem;
+    }
+
+    .hero-section p.lead { /* Added from previous output */
+        font-size: 1rem;
+    }
+
+    .display-5 { /* Added from previous output */
+        font-size: 2rem;
+    }
+
+    .card-custom { /* Added from previous output */
+        padding: 1.5rem !important;
+    }
+
+    .feature-icon { /* Added from previous output */
+        font-size: 2.5rem;
+    }
+
+    .card-custom h3 { /* Added from previous output */
+        font-size: 1.5rem;
+    }
+
+    .message-bubble { /* Adjusted for smaller screens from previous output */
+        max-width: 95%;
+    }
 }
+
+@media (max-width: 768px) { /* Added additional breakpoint for more fine-tuning */
+    .sidebar {
+        width: 250px;
+        transform: translateX(-250px);
+        position: fixed; /* Ensure it stays fixed even when hidden */
+        height: 100%;
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .content {
+        margin-left: 0;
+    }
+
+    .sidebar-toggler {
+        display: block !important;
+    }
+}
+
 
 /* Animations */
 @keyframes fadeIn {
@@ -176,6 +419,12 @@ a{
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--text-light); /* Added from previous output */
+    width: 42px; /* Added from previous output */
+    height: 42px; /* Added from previous output */
+    border-radius: 50% !important; /* Added from previous output */
+    padding: 0; /* Added from previous output */
+    flex-shrink: 0; /* Added from previous output */
 }
 
 #send-button:hover {
@@ -183,22 +432,22 @@ a{
 }
 
 /* Message styling */
-.message-content {
-    margin-bottom: 0.25rem;
-}
-
 .message-time {
-    font-size: 0.75rem;
-    opacity: 0.7;
-    text-align: right;
+    display: block; /* Para que a hora fique em sua própria linha */
+    font-size: 0.8em;
+    color: #aaa;
+    margin-bottom: 5px; /* Espaço entre a hora e a mensagem */
+    opacity: 0.7; /* Added from previous output */
+    text-align: right; /* Added from previous output */
 }
 
 .user-message .message-time {
-    color: rgba(255, 255, 255, 0.8);
+    text-align: right; /* Alinha a hora à direita nas mensagens do usuário (opcional) */
+    color: rgba(255, 255, 255, 0.8); /* Added from previous output */
 }
 
 .bot-message .message-time {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.6); /* Added from previous output */
 }
 
 /* Chat history */
@@ -246,27 +495,12 @@ a{
 }
 
 /* Estilo para fórmulas LaTeX */
-.latex {
+.latex { /* Merged with latex-inline, keeping this for broader compatibility */
     font-family: "Courier New", monospace;
-    background-color: #2d2d2d;
+    background-color: rgba(45, 45, 45, 0.5); /* Adjusted from previous output for consistency */
     padding: 2px 5px;
     border-radius: 3px;
     font-size: 1.1em;
-}
-
-/* Melhorias na mensagem */
-.message-content {
-    line-height: 1.6;
-}
-
-.message-content strong {
-    color: #f8f9fa;
-    font-weight: 600;
-}
-
-.message-content em {
-    color: #ddd;
-    font-style: italic;
 }
 
 /* Efeito hover nos botões de deletar */
@@ -288,7 +522,7 @@ a{
     overflow-x: auto;
 }
 
-.latex-inline {
+.latex-inline { /* Merged with latex, keeping this for explicit use if needed */
     font-family: "Courier New", monospace;
     background-color: rgba(45, 45, 45, 0.5);
     padding: 2px 5px;
@@ -312,12 +546,6 @@ a{
     min-height: 70vh;
     background-color: var(--bg-dark);
     transition: all 0.3s ease;
-}
-
-/* Estilo para mensagens persistentes */
-.message {
-    opacity: 1;
-    transition: opacity 0.5s;
 }
 
 /* Estilos para o modal de confirmação de exclusão */
@@ -454,20 +682,106 @@ a{
 .transparent-toggler:active {
     transform: scale(0.98);
 }
-.message-time {
-    display: block; /* Para que a hora fique em sua própria linha */
-    font-size: 0.8em;
-    color: #aaa;
-    margin-bottom: 5px; /* Espaço entre a hora e a mensagem */
-}
-
-.user-message .message-time {
-    text-align: right; /* Alinha a hora à direita nas mensagens do usuário (opcional) */
-}
 
 /* Opcional: Adaptação para telas menores (se necessário) */
 @media (max-width: 575.98px) {
     .suggestions .col {
         margin-bottom: 0.75rem;
     }
+}
+
+/* --- Hero Section (index.html, added from previous output) --- */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1542382902-b0542368c818') no-repeat center center/cover; /* Placeholder image, consider replacing */
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: var(--text-light);
+    position: relative;
+    overflow: hidden;
+    padding: 80px 0; /* Add padding for smaller screens */
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 80%);
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-section p.lead {
+    font-size: 1.25rem;
+    max-width: 700px;
+    margin: 0 auto 3rem auto;
+}
+
+/* --- Features Section (index.html, added from previous output) --- */
+section.py-5 {
+    background-color: var(--bg-darker);
+}
+
+.card-custom {
+    background-color: var(--bg-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    color: var(--text-light);
+    height: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.card-custom h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.card-custom p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- CTA Section (index.html, added from previous output) --- */
+.bg-dark {
+    background-color: var(--bg-dark) !important;
+}
+
+.cta-section h2 {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+/* --- Footer (index.html, added from previous output) --- */
+footer {
+    background-color: var(--bg-dark);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 1.5rem 0;
 }
