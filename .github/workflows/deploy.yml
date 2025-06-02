@@ -1,0 +1,70 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Replace API Key Placeholder
+        run: |
+          JS_FILE="js/main.js"
+          API_KEYS=()
+          
+          # Coleta todas as chaves da API dos segredos do GitHub.
+          # Adiciona cada chave ao array API_KEYS se ela existir como um segredo.
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_1 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_1 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_2 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_2 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_3 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_3 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_4 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_4 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_5 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_5 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_6 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_6 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_7 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_7 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_8 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_8 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_9 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_9 }}"); fi
+          if [[ -n "${{ secrets.OPENROUTER_API_KEY_10 }}" ]]; then API_KEYS+=("${{ secrets.OPENROUTER_API_KEY_10 }}"); fi
+          
+          # Formata as chaves em uma string separada por vírgulas e aspas para o array JavaScript
+          JOINED_KEYS=""
+          for i in "${!API_KEYS[@]}"; do
+            KEY="${API_KEYS[$i]}"
+            if [[ $i -gt 0 ]]; then
+              JOINED_KEYS+=", "
+            fi
+            JOINED_KEYS+="\"$KEY\""
+          done
+          
+          echo "Generated API Keys String: $JOINED_KEYS"
+
+          echo "Attempting to replace placeholder in $JS_FILE"
+          if [ -f "$JS_FILE" ]; then
+            sed -i "s|\/\*%%OPENROUTER_API_KEYS_ARRAY_PLACEHOLDER%%\*\/|$JOINED_KEYS|g" "$JS_FILE"
+            echo "Placeholder replacement done."
+          else
+            echo "Error: $JS_FILE not found!"
+            exit 1
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
