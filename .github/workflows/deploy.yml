@@ -1,56 +1,58 @@
-name: Deploy PilhIA Frontend to GitHub Pages
+name: Deploy to GitHub Pages
 
+# Dispara o workflow em pushes para a branch 'main'
 on:
   push:
     branches:
-      - main # Dispara o workflow quando há um push na branch 'main'
+      - main # Mude para 'master' ou sua branch principal, se for diferente
 
-  # Permite executar este workflow manualmente pela aba Actions do GitHub
-  workflow_dispatch:
-
-# Define permissões para o GITHUB_TOKEN. Isso é necessário para o GitHub Pages.
+# Define permissões para o job de deploy poder interagir com o GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest # O sistema operacional que será usado para rodar os passos
+  deploy:
+    # Se você usou um "Environment Secret" no Passo 3A e criou um ambiente chamado 'github-pages'
+    environment:
+      name: github-pages # Certifique-se que este é o nome do ambiente que você criou
+      url: ${{ steps.deployment.outputs.page_url }} # Define a URL de deploy após o sucesso
+
+    runs-on: ubuntu-latest # Usa a última versão estável do Ubuntu como ambiente de execução
 
     steps:
-    - name: Checkout code # Pega o seu código do repositório
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4 # Ação para baixar o código do seu repositório
 
-    - name: Set up Node.js # Configura o ambiente Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18' # Use a versão do Node.js que seu projeto utiliza
-        cache: 'npm' # Habilita cache para node_modules, o que acelera builds futuros
+      - name: Replace API Key Placeholder
+        # Certifique-se que o nome do segredo 'OPENROUTER_API_KEY_FOR_PAGES' é o mesmo do Passo 3
+        run: |
+          echo "Attempting to replace placeholder in js/chatbot.js"
+          # Verifica se o arquivo existe no caminho js/chatbot.js
+          if [ -f "js/chatbot.js" ]; then
+            sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEYS }}|g" js/chatbot.js
+            echo "Placeholder replacement done in js/chatbot.js."
+          else
+            echo "Error: js/ia_chatbot.js not found!"
+            # Lista os arquivos na pasta js para ajudar na depuração
+            echo "Files in js/ directory:"
+            ls -la js/
+            # Lista os arquivos na raiz para ajudar na depuração
+            echo "Files in root directory:"
+            ls -la ./
+            exit 1
+          fi
+        # MUITO IMPORTANTE: O caminho "js/ia_logic.js" foi corrigido.
 
-    - name: Install dependencies # Instala as bibliotecas que seu projeto precisa (do package.json)
-      run: npm install
+      - name: Setup Pages
+        uses: actions/configure-pages@v5 # Ação para configurar o GitHub Pages
 
-    # ATENÇÃO: AQUI ESTÁ A MUDANÇA CRUCIAL!
-    # Passamos o segredo OPENROUTER_API_KEYS como uma variável de ambiente
-    # para o comando de build do Vite.
-    # O Vite automaticamente reconhece variáveis que começam com VITE_
-    # e as injeta no seu código JavaScript.
-    - name: Build project with Vite
-      run: npm run build # Este comando executa 'vite build' definido no seu package.json
-      env:
-        # Esta linha expõe o segredo do GitHub como uma variável de ambiente
-        # que o Vite irá ler durante o processo de build.
-        VITE_OPENROUTER_API_KEYS: ${{ secrets.OPENROUTER_API_KEYS }}
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3 # Ação para empacotar os arquivos do site
+        with:
+          path: '.' # Envia todo o conteúdo do repositório (ajuste se necessário)
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v5 # Esta ação configura o ambiente para o GitHub Pages
-
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: './dist' # Caminho da pasta de build do Vite. Geralmente 'dist'.
-
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4 # Esta ação realmente faz o deploy para o Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # Ação para fazer o deploy no GitHub Pages
