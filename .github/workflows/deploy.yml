@@ -1,63 +1,56 @@
-name: Deploy to GitHub Pages
+name: Deploy PilhIA Frontend to GitHub Pages
 
-# Dispara o workflow em pushes para a branch 'main'
 on:
   push:
     branches:
-      - main # Mude para 'master' ou sua branch principal, se for diferente
+      - main # Dispara o workflow quando há um push na branch 'main'
 
-# Define permissões para o job de deploy poder interagir com o GitHub Pages
+  # Permite executar este workflow manualmente pela aba Actions do GitHub
+  workflow_dispatch:
+
+# Define permissões para o GITHUB_TOKEN. Isso é necessário para o GitHub Pages.
 permissions:
   contents: read
   pages: write
   id-token: write
 
 jobs:
-  deploy:
-    # Se você usou um "Environment Secret" no Passo 3A e criou um ambiente chamado 'github-pages'
-    environment:
-      name: github-pages # Certifique-se que este é o nome do ambiente que você criou
-      url: ${{ steps.deployment.outputs.page_url }} # Define a URL de deploy após o sucesso
-
-    runs-on: ubuntu-latest # Usa a última versão estável do Ubuntu como ambiente de execução
+  build-and-deploy:
+    runs-on: ubuntu-latest # O sistema operacional que será usado para rodar os passos
 
     steps:
-      - name: Checkout code # Ação para baixar o código do seu repositório
-        uses: actions/checkout@v4
+    - name: Checkout code # Pega o seu código do repositório
+      uses: actions/checkout@v3
 
-      - name: Replace API Key Placeholder # Substitui o placeholder no seu arquivo JavaScript
-        # Certifique-se que o nome do segredo 'OPENROUTER_API_KEY_FOR_PAGES' é o mesmo do Passo 3
-        # O valor do segredo deve ser uma string JSON com todas as suas chaves (ex: '["chave1", "chave2"]')
-        run: |
-          echo "Tentando substituir o placeholder no arquivo JavaScript principal..."
-          # ATENÇÃO: Substitua 'js/main.js' pelo caminho real do seu arquivo JavaScript principal.
-          # Ex: se seu arquivo principal for 'script.js' na raiz, use 'script.js'.
-          # Se for 'src/app.js', use 'src/app.js'.
-          FILE_PATH="js/main.js" # <-- AJUSTE ESTE CAMINHO SE SEU ARQUIVO JS ESTIVER EM OUTRO LUGAR
+    - name: Set up Node.js # Configura o ambiente Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Use a versão do Node.js que seu projeto utiliza
+        cache: 'npm' # Habilita cache para node_modules, o que acelera builds futuros
 
-          if [ -f "$FILE_PATH" ]; then
-            # Substitui o placeholder no arquivo.
-            # O 'sed -i' edita o arquivo no lugar.
-            sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY_FOR_PAGES }}|g" "$FILE_PATH"
-            echo "Substituição do placeholder concluída em $FILE_PATH."
-          else
-            echo "Erro: O arquivo $FILE_PATH não foi encontrado!"
-            echo "Verifique o caminho no 'FILE_PATH' acima."
-            echo "Arquivos no diretório atual:"
-            ls -la ./
-            echo "Arquivos no diretório 'js/' (se existir):"
-            ls -la js/ || true # '|| true' evita erro se a pasta 'js/' não existir
-            exit 1 # Falha o workflow se o arquivo não for encontrado
-          fi
+    - name: Install dependencies # Instala as bibliotecas que seu projeto precisa (do package.json)
+      run: npm install
 
-      - name: Setup Pages # Ação para configurar o GitHub Pages
-        uses: actions/configure-pages@v5
+    # ATENÇÃO: AQUI ESTÁ A MUDANÇA CRUCIAL!
+    # Passamos o segredo OPENROUTER_API_KEYS como uma variável de ambiente
+    # para o comando de build do Vite.
+    # O Vite automaticamente reconhece variáveis que começam com VITE_
+    # e as injeta no seu código JavaScript.
+    - name: Build project with Vite
+      run: npm run build # Este comando executa 'vite build' definido no seu package.json
+      env:
+        # Esta linha expõe o segredo do GitHub como uma variável de ambiente
+        # que o Vite irá ler durante o processo de build.
+        VITE_OPENROUTER_API_KEYS: ${{ secrets.OPENROUTER_API_KEYS }}
 
-      - name: Upload artifact # Ação para empacotar os arquivos do site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.' # Envia todo o conteúdo do repositório (ajuste se necessário, ex: 'dist/')
+    - name: Setup Pages
+      uses: actions/configure-pages@v5 # Esta ação configura o ambiente para o GitHub Pages
 
-      - name: Deploy to GitHub Pages # Ação para fazer o deploy no GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './dist' # Caminho da pasta de build do Vite. Geralmente 'dist'.
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4 # Esta ação realmente faz o deploy para o Pages
