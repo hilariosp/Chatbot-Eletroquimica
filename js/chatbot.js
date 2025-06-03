@@ -1,6 +1,15 @@
-let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%"; // Declarada APENAS UMA VEZ aqui.
+// js/chatbot.js
 
-function ensureApiKey() { // Esta é a ÚNICA DECLARAÇÃO de ensureApiKey no arquivo
+let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%";
+
+const chatState = {
+    currentQuestionData: null,
+    questionsList: [],
+    potentialsTable: {},
+    knowledgeBase: ""
+};
+
+function ensureApiKey() {
     if (!openRouterApiKey || openRouterApiKey.trim() === "") {
         const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
         if (userKey && userKey.trim() !== "") {
@@ -83,17 +92,6 @@ async function callOpenRouterAPI(promptText, apiKey, model = "google/gemma-3-27b
     }
 }
 
-const chatState = {
-    chatId: null,
-    currentQuestionData: null,
-    questionsList: [],
-    potentialsTable: {},
-    knowledgeBase: ""
-};
-
-// REMOVIDO: A SEGUNDA DECLARAÇÃO DA FUNÇÃO 'ensureApiKey' FOI RETIRADA AQUI.
-// A função 'ensureApiKey' já está definida no início do arquivo.
-
 async function loadQuestions() {
     try {
         const response = await fetch('./data/questoes/eletroquimica.json');
@@ -131,7 +129,7 @@ async function loadQuestions() {
                 });
                 formattedQuestions.push({
                     pergunta: formattedAnswer,
-                    alternativas: alternatives,
+                    alternativas: alternativas,
                     resposta_correta: correctAnswer.toLowerCase()
                 });
             }
@@ -256,13 +254,23 @@ async function processUserQuery(user_input) {
     document.getElementById('user-input').value = '';
 
     try {
+        // Obter o elemento loading-indicator
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block'; // Mostrar o indicador
+        }
+
         const apiKey = ensureApiKey();
         if (!apiKey) {
             displayMessage("Por favor, insira sua chave API para usar a IA.", 'bot');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none'; // Esconder o indicador se houver erro
+            }
             return;
         }
 
-        const typingIndicator = displayMessage(' digitando...', 'bot typing');
+        // Removida a linha 'const typingIndicator = displayMessage(' digitando...', 'bot typing');'
+        // pois o loading-indicator fará essa função.
 
         let ai_response;
 
@@ -270,10 +278,17 @@ async function processUserQuery(user_input) {
             const eletrodosStr = cleanedInput.toLowerCase().replace('calcular pilha ', '');
             ai_response = calcularVoltagemPilha(eletrodosStr);
         } else {
+            // A IA responderá apenas a comandos de cálculo de pilha por enquanto
             ai_response = "Desculpe, no momento só consigo calcular voltagens de pilhas. Por favor, tente um comando como 'calcular pilha cobre e zinco'.";
+            // Se você quiser que a IA responda a outras perguntas,
+            // você precisaria chamar callOpenRouterAPI(cleanedInput, apiKey) aqui
+            // ai_response = await callOpenRouterAPI(cleanedInput, apiKey);
         }
 
-        typingIndicator.remove();
+        // Esconder o indicador de carregamento
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
 
         if (ai_response) {
             displayMessage(ai_response, 'bot');
@@ -281,21 +296,27 @@ async function processUserQuery(user_input) {
 
     } catch (error) {
         console.error("Erro ao processar a consulta do usuário:", error);
-        const typingIndicator = document.querySelector('.message.bot.typing');
-        if (typingIndicator) {
-            typingIndicator.remove();
+        // Esconder o indicador de carregamento em caso de erro
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
         }
         displayMessage("Ocorreu um erro ao tentar obter a resposta. Por favor, tente novamente.", 'bot');
     }
 }
 
 function displayMessage(message, sender) {
-    const chatBox = document.getElementById('chat-box');
+    // Agora usando 'chat-container' como ID da área de mensagens
+    const chatContainer = document.getElementById('chat-container'); 
+    if (!chatContainer) {
+        console.error("Erro: Elemento com ID 'chat-container' não encontrado no HTML.");
+        return; 
+    }
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', sender);
     messageElement.innerHTML = sender === 'bot typing' ? message : formatMessage(message);
-    chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatContainer.appendChild(messageElement); // Adiciona a mensagem ao chat-container
+    chatContainer.scrollTop = chatContainer.scrollHeight;
     return messageElement;
 }
 
@@ -308,7 +329,12 @@ function formatMessage(text) {
 }
 
 function addSuggestionsToChat(suggestions) {
-    const chatBox = document.getElementById('chat-box');
+    // Usando 'chat-container' para adicionar sugestões
+    const chatContainer = document.getElementById('chat-container'); 
+    if (!chatContainer) {
+        console.error("Erro: Elemento com ID 'chat-container' não encontrado no HTML para adicionar sugestões.");
+        return;
+    }
     const suggestionsContainer = document.createElement('div');
     suggestionsContainer.classList.add('suggestions-container');
 
@@ -323,13 +349,18 @@ function addSuggestionsToChat(suggestions) {
         };
         suggestionsContainer.appendChild(button);
     });
-    chatBox.appendChild(suggestionsContainer);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    chatContainer.appendChild(suggestionsContainer); // Adiciona sugestões ao chat-container
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 function removeSuggestionsFromChat() {
-    const chatBox = document.getElementById('chat-box');
-    const suggestionContainers = chatBox.querySelectorAll('.suggestions-container');
+    // Usando 'chat-container' para remover sugestões
+    const chatContainer = document.getElementById('chat-container'); 
+    if (!chatContainer) {
+        console.error("Erro: Elemento com ID 'chat-container' não encontrado no HTML para remover sugestões.");
+        return;
+    }
+    const suggestionContainers = chatContainer.querySelectorAll('.suggestions-container');
     suggestionContainers.forEach(container => container.remove());
 }
 
@@ -341,24 +372,42 @@ function loadChatHistory() {
 }
 
 function saveChatHistory() {
-    const chatBox = document.getElementById('chat-box');
-    const messages = Array.from(chatBox.children).map(msgElement => {
-        if (!msgElement.classList.contains('typing') && !msgElement.classList.contains('suggestions-container')) {
-            return {
-                text: msgElement.innerText,
-                sender: msgElement.classList.contains('user') ? 'user' : 'bot'
-            };
-        }
-        return null;
-    }).filter(msg => msg !== null);
+    // Usando 'chat-container' para salvar histórico
+    const chatContainer = document.getElementById('chat-container'); 
+    if (!chatContainer) {
+        console.error("Erro: Elemento com ID 'chat-container' não encontrado no HTML para salvar histórico.");
+        return;
+    }
+    // O chat-container tem o h2 e o loading-indicator. Não queremos salvar eles como mensagens.
+    // Vamos filtrar apenas os elementos que são mensagens (com a classe 'message').
+    const messages = Array.from(chatContainer.children)
+                               .filter(msgElement => msgElement.classList.contains('message') && !msgElement.classList.contains('typing') && !msgElement.classList.contains('suggestions-container'))
+                               .map(msgElement => ({
+                                   text: msgElement.innerText,
+                                   sender: msgElement.classList.contains('user') ? 'user' : 'bot'
+                               }));
 
     localStorage.setItem('chatHistory', JSON.stringify(messages));
 }
 
+// A função clearChatHistory não será usada diretamente via um botão no HTML
+// Se você quiser reintroduzi-la, adicione um botão com o ID apropriado no HTML.
 function clearChatHistory() {
     localStorage.removeItem('chatHistory');
-    document.getElementById('chat-box').innerHTML = '';
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+        // Limpar o conteúdo da área de chat, mas manter o h2 e o loading-indicator
+        chatContainer.innerHTML = `
+            <div class="text-center mt-5 pt-5">
+                <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
+            </div>
+            <div id="loading-indicator" style="display: none; text-align: center; margin-top: 10px; color: #888;">
+                Carregando resposta da IA...
+            </div>
+        `;
+    }
     displayMessage("Histórico do chat limpo. Bem-vindo!", 'bot');
+    addSuggestionsToChat(['calcular pilha cobre e zinco']); // Reapresentar sugestões
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -368,22 +417,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadKnowledgeBase();
     await loadQuestions();
 
-    loadChatHistory();
+    // Adicionado uma verificação se a página é para o chat principal antes de carregar o histórico
+    // Isso evita que o histórico seja carregado em outras páginas que porventura usem este script
+    if (document.getElementById('chat-container')) {
+        loadChatHistory();
+    }
 
-    document.getElementById('send-button').addEventListener('click', () => {
-        const userInput = document.getElementById('user-input').value;
-        processUserQuery(userInput);
-        saveChatHistory();
-    });
+    const sendButton = document.getElementById('send-button');
+    const userInput = document.getElementById('user-input');
+    // REMOVIDO: const clearChatButton = document.getElementById('clear-chat-button');
+    // Pois esse ID não existe no seu HTML atual.
 
-    document.getElementById('user-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('send-button').click();
-        }
-    });
+    if (sendButton) {
+        sendButton.addEventListener('click', () => {
+            processUserQuery(userInput.value);
+            saveChatHistory();
+        });
+    } else {
+        console.error("Erro: Botão com ID 'send-button' não encontrado no HTML.");
+    }
 
-    document.getElementById('clear-chat-button').addEventListener('click', clearChatHistory);
+    if (userInput) {
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendButton.click();
+            }
+        });
+    } else {
+        console.error("Erro: Campo de texto com ID 'user-input' não encontrado no HTML.");
+    }
 
+    // REMOVIDO: Listener para clearChatButton
+    // if (clearChatButton) {
+    //     clearChatButton.addEventListener('click', clearChatHistory);
+    // } else {
+    //     console.warn("Aviso: Botão com ID 'clear-chat-button' não encontrado no HTML. A função de limpar chat não estará disponível.");
+    // }
+
+    // Mensagem de boas-vindas inicial e sugestões
     displayMessage("Olá! Sou a PilhIA, sua assistente educativa em eletroquímica. Posso te ajudar a **calcular voltagens de pilhas** (ex: 'calcular pilha cobre e zinco').", 'bot');
     addSuggestionsToChat(['calcular pilha cobre e zinco']);
 });
