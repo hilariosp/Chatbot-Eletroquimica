@@ -72,12 +72,14 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: |
-            ./ 
-            ./css 
-            ./js 
-            ./data 
-            ./images 
+          # MUDANÇA CRÍTICA AQUI: Use uma lista YAML para os caminhos.
+          # Cada item da lista é um caminho separado.
+          path:
+            - ./ 
+            - ./css 
+            - ./js 
+            - ./data 
+            - ./images 
             # Adicione outras pastas ou arquivos específicos se houver
             
       - name: Deploy to GitHub Pages
