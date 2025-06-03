@@ -638,4 +638,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadChatHistory();
     addSuggestionsToChat();
     userInput.focus();
+
 });
