@@ -5,72 +5,44 @@ let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%";
 
 // Estado global do chat e dados auxiliares
 const chatState = {
-    currentQuestionData: null,
-    questionsList: [],
-    potentialsTable: {},
-    knowledgeBase: ""
+    chatId: null, // ID do chat atual, caso queira expandir para multi-chat
+    currentQuestionData: null, // Para o estado do quiz
+    questionsList: [], // Questões carregadas
+    potentialsTable: {}, // Tabela de potenciais
+    knowledgeBase: "" // Base de dados carregada
 };
 
-// Garante que há uma chave de API válida, senão pede ao usuário
-function ensureApiKey() {
-    if (!openRouterApiKey || openRouterApiKey.trim() === "") {
-        const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
-        if (userKey && userKey.trim() !== "") {
-            openRouterApiKey = userKey.trim();
-            return openRouterApiKey;
-        } else {
-            alert("Chave API é necessária para usar a IA.");
-            return null;
-        }
-    }
-    return openRouterApiKey;
-}
+// ==========================================================
+// OPENROUTER API KEY MANAGEMENT
+// ==========================================================
 
-// Chamada à API do OpenRouter
-async function callOpenRouterAPI(promptText, apiKey, model = "google/gemma-3-27b-it:free", maxTokens = 2500, temperature = 1.0) {
-    if (!apiKey) {
-        return "Erro: Chave API não configurada.";
-    }
-    const headers = {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": window.location.origin,
-        "X-Title": "Chatbot Eletroquímica"
-    };
-    const body = JSON.stringify({
-        model: model,
-        messages: [{ role: "user", content: promptText }],
-        temperature: temperature,
-        max_tokens: maxTokens,
-    });
-    try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: headers,
-            body: body
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            let errorData;
-            try {
-                errorData = JSON.parse(errorText);
-            } catch (e) {
-                errorData = { error: { message: `Erro HTTP ${response.status}: ${response.statusText}` } };
+const OPENROUTER_API_KEYS = []; // Deixe vazio no frontend público!
+
+function getRandomOpenRouterApiKey() {
+    if (OPENROUTER_API_KEYS.length === 0) {
+        if (!openRouterApiKey || openRouterApiKey === "%%OPENROUTER_API_KEY_PLACEHOLDER%%") {
+            const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
+            if (userKey && userKey.trim() !== "") {
+                openRouterApiKey = userKey.trim();
+                return openRouterApiKey;
+            } else {
+                alert("Chave API é necessária para usar a IA.");
+                return null;
             }
-            const errorMessage = errorData?.error?.message || `Erro na API: ${response.statusText}`;
-            return `Erro na API: ${errorMessage}`;
         }
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content ?? "Não obtive uma resposta válida da IA.";
-    } catch (error) {
-        return `Erro ao conectar com a API OpenRouter: ${error.message}`;
+        return openRouterApiKey;
     }
+    const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
+    return OPENROUTER_API_KEYS[randomIndex];
 }
 
-// Carrega questões do arquivo JSON
+// ==========================================================
+// FUNÇÕES DE CARREGAMENTO DE DADOS ESTÁTICOS (do GitHub Pages)
+// ==========================================================
+
 async function loadQuestions() {
     try {
-        const response = await fetch('./data/questoes/eletroquimica.json');
+        const response = await fetch('./data/questoes/eletroquimica.json'); 
         if (!response.ok) throw new Error(`Erro ao carregar questões: ${response.statusText}`);
         const data = await response.json();
 
@@ -92,6 +64,21 @@ async function loadQuestions() {
                     });
                 }
             });
+        } else if (typeof data === 'object' && data !== null) {
+            const questionText = data.questao;
+            const alternatives = data.alternativas;
+            const correctAnswer = data.resposta_correta;
+            if (questionText && alternatives && correctAnswer) {
+                let formattedAnswer = `${questionText}\n`;
+                Object.entries(alternatives).slice(0, 4).forEach(([letter, option]) => {
+                    formattedAnswer += `(${letter.toUpperCase()}) ${option}\n`;
+                });
+                formattedQuestions.push({
+                    pergunta: formattedAnswer,
+                    alternativas: alternatives,
+                    resposta_correta: correctAnswer.toLowerCase()
+                });
+            }
         }
         chatState.questionsList = formattedQuestions;
         console.log(`✅ ${chatState.questionsList.length} questões carregadas.`);
@@ -101,7 +88,6 @@ async function loadQuestions() {
     }
 }
 
-// Carrega tabela de potenciais padrão
 async function loadPotentialsTable() {
     try {
         const response = await fetch('./data/tabelas/tabela_potenciais.json');
@@ -124,15 +110,14 @@ async function loadPotentialsTable() {
     }
 }
 
-// Carrega base de conhecimento (resumo textual)
 async function loadKnowledgeBase() {
     let content = "";
-    const knowledgeBaseFile = './data/basededados/eletroquimica.json';
+    const knowledgeBaseFile = './data/basededados/eletroquimica.json'; 
 
     try {
         const response = await fetch(knowledgeBaseFile);
         if (!response.ok) {
-            console.warn(`Arquivo de base de dados não encontrado ou erro ao carregar ${knowledgeBaseFile}: ${response.statusText}`);
+            console.warn(`Ficheiro da base de dados não encontrado ou erro ao carregar ${knowledgeBaseFile}: ${response.statusText}`);
             chatState.knowledgeBase = "";
             return;
         }
@@ -150,9 +135,8 @@ async function loadKnowledgeBase() {
                 return formattedItem;
             }).join("\n---\n");
         } else {
-            fileText = JSON.stringify(jsonData, null, 2);
+            fileText = JSON.stringify(jsonData, null, 2); 
         }
-
         content += `\n--- Conteúdo de ${knowledgeBaseFile} ---\n${fileText.substring(0, 7500)}\n`;
         chatState.knowledgeBase = content.substring(0, 8000);
         console.log(`📖 Base de dados carregada (${chatState.knowledgeBase.length} caracteres).`);
@@ -162,7 +146,10 @@ async function loadKnowledgeBase() {
     }
 }
 
-// Calcula voltagem de pilha a partir de dois eletrodos
+// ==========================================================
+// FUNÇÕES DE CÁLCULO E LÓGICA DO QUIZ (FRONTEND)
+// ==========================================================
+
 function calcularVoltagemPilha(eletrodosStr) {
     const eletrodos = eletrodosStr.split(' e ').map(e => e.trim().toLowerCase()).filter(e => e);
 
@@ -181,23 +168,200 @@ function calcularVoltagemPilha(eletrodosStr) {
             }
         }
         if (!foundMatch) {
-            return `Não foi possível encontrar o potencial para o eletrodo: ${eletrodo}. Por favor, verifique se ele está na lista de potenciais conhecidos.`;
+            return `Não encontrei o potencial padrão para '${eletrodo}'. Verifique a grafia ou se está na tabela.`;
         }
     }
 
-    const [eletrodo1, eletrodo2] = eletrodos;
-    const potencial1 = potentials[eletrodo1];
-    const potencial2 = potentials[eletrodo2];
-
-    if (potencial1 === undefined || potencial2 === undefined) {
-        return "Não foi possível encontrar os potenciais para um ou ambos os eletrodos especificados.";
+    if (Object.keys(potentials).length < 2) {
+        return "Não foi possível encontrar potenciais para ambos os eletrodos. Verifique a grafia.";
     }
 
-    const E_celula = Math.abs(potencial1 - potencial2);
-    return `A voltagem da pilha entre ${eletrodo1} e ${eletrodo2} é de aproximadamente ${E_celula.toFixed(3)} V.`;
+    const catodoName = Object.keys(potentials).reduce((a, b) => potentials[a] > potentials[b] ? a : b);
+    const anodoName = Object.keys(potentials).reduce((a, b) => potentials[a] < potentials[b] ? a : b);
+    const voltagem = potentials[catodoName] - potentials[anodoName];
+
+    return `A voltagem da pilha com ${catodoName.charAt(0).toUpperCase() + catodoName.slice(1)} e ${anodoName.charAt(0).toUpperCase() + anodoName.slice(1)} é de ${voltagem.toFixed(2)} V.`;
 }
 
-// Exibe mensagem no chat (user ou bot)
+function generateQuestion() {
+    if (chatState.questionsList.length === 0) {
+        return "Não há mais questões disponíveis.";
+    }
+    const q = chatState.questionsList[Math.floor(Math.random() * chatState.questionsList.length)];
+    chatState.currentQuestionData = q;
+    return q.pergunta;
+}
+
+// ==========================================================
+// SYSTEM PROMPT PARA CHATBOT
+// ==========================================================
+
+const SYSTEM_PROMPT_CHATBOT = `
+Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroquímica, baterias, eletrólise e pilha de Daniell.
+
+1. COMPORTAMENTO:
+- Mantenha respostas claras, concisas e diretamente relacionadas à eletroquímica.
+- **FORNEÇA RESPOSTAS APENAS COM BASE NA DOCUMENTAÇÃO DE REFERÊNCIA EXPLÍCITA NO CONTEXTO. NÃO BUSQUE INFORMAÇÕES EXTERNAS.**
+- **Se a pergunta for para 'entender' ou 'explicar' um conceito presente no contexto (ex: 'Quero entender eletroquímica', 'Explique a eletrólise'), você DEVE usar o conteúdo da base de dados para fornecer uma explicação clara e concisa.**
+- **Se o usuário solicitar uma explicação usando analogias (ex: 'Explique eletroquímica fazendo analogias com um jogo'), você PODE usar analogias, desde que elas sirvam para CLARIFICAR os conceitos de eletroquímica presentes na sua base de dados.**
+- Se o conceito não estiver explicitamente no contexto, ou a pergunta for muito vaga ou fora do tópico de eletroquímica (baterias, eletrólise, pilha de Daniell), responda APENAS E EXCLUSIVAMENTE: "Não sei responder isso".
+- Se a pergunta for incompleta (ex: 'o que é a'), responda: "Não sei responder isso".
+- Se for perguntado algo fora de eletroquímica (baterias, eletrólise, pilha de Daniell), responda que não pode responder por estar fora do assunto.
+- Se pedir questões sobre eletroquímica, você deve pegar elas diretamente da sua lista de questões (que está no seu contexto), e soltar apenas uma por vez.
+- Ao explicar a resposta de uma questão, forneça APENAS a justificativa conceitual e quimicamente ACURADA para a alternativa CORRETA. NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão. Sua explicação deve ser uma justificativa direta, concisa e precisa, focando nos princípios da eletroquímica.
+
+2. FORMATO:
+- Use parágrafos curtos e marcadores quando apropriado.
+- Não faça uso de LaTeX ou fórmulas matemáticas complexas; use texto simples.
+- Para listas longas, sugira uma abordagem passo a passo.
+- Para as questões pedidas, você deve copiar ela totalmente, menos a resposta correta (a não ser que o usuário peça questões com resposta correta).
+
+3. RESTRIÇÕES ABSOLUTAS:
+- NUNCA INVENTE INFORMAÇÕES.
+- NUNCA BUSQUE INFORMAÇÕES NA INTERNET.
+- NUNCA RESPONDA A PERGUNTAS FORA DO ESCOPO DE ELETROQUÍMICA (baterias, eletrólise, pilha de Daniell).
+- Não responda perguntas sobre temas sensíveis ou ilegais.
+- Não gere conteúdo ofensivo ou discriminatório.
+
+4. INTERAÇÃO:
+- Peça esclarecimentos se a pergunta for ambígua.
+- Para perguntas complexas, sugira dividi-las em partes menores.
+- Confirme se respondeu adequadamente à dúvida.
+`;
+
+// ==========================================================
+// FUNÇÃO UNIFICADA PARA CHAMAR A API OPENROUTER DIRETAMENTE
+// ==========================================================
+
+async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, model = "meta-llama/llama-3.2-3b-instruct:free", temperature = 0.5, max_tokens = 1500) {
+    const currentApiKey = getRandomOpenRouterApiKey();
+    if (!currentApiKey) {
+        return "⚠️ Erro: Nenhuma chave da API configurada. A IA não está disponível.";
+    }
+
+    try {
+        const messages = [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt }
+        ];
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + currentApiKey,
+                "Content-Type": "application/json",
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "PilhIA Frontend"
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: messages,
+                temperature: temperature,
+                max_tokens: max_tokens
+            })
+        });
+
+        if (!response.ok) {
+            let errorDetails = "Erro desconhecido da API.";
+            try {
+                const errorText = await response.text();
+                try {
+                    const errorData = JSON.parse(errorText);
+                    if (errorData.message) {
+                        errorDetails = errorData.message;
+                    } else if (errorData.error && typeof errorData.error === 'string') {
+                        errorDetails = errorData.error;
+                    } else if (errorData.error && errorData.error.message) {
+                        errorDetails = errorData.error.message;
+                    } else if (errorData.detail) {
+                        errorDetails = errorData.detail;
+                    } else {
+                        errorDetails = JSON.stringify(errorData, null, 2);
+                    }
+                } catch (jsonParseError) {
+                    errorDetails = `Resposta da API não é JSON válido. Texto: ${errorText.substring(0, 500)}...`;
+                }
+            } catch (readError) {
+                errorDetails = `Erro ao ler resposta da API: ${readError.message}. Status HTTP: ${response.status} ${response.statusText}`;
+            }
+            throw new Error(`Erro na API OpenRouter (Status: ${response.status}): ${errorDetails}`);
+        }
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || "Sem resposta da IA.";
+
+    } catch (error) {
+        console.error("Erro ao chamar a API do OpenRouter:", error);
+        return `⚠️ Erro na comunicação com a IA: ${error.message}.`;
+    }
+}
+
+// ==========================================================
+// FUNÇÃO DE PROCESSAMENTO DE CONSULTAS DO CHATBOT
+// ==========================================================
+
+async function processUserQuery(user_input) {
+    const user_lower = user_input.toLowerCase();
+    let response = "";
+
+    // 1. Cálculo de voltagem de pilha
+    if (user_lower.includes("calcular a voltagem de uma pilha de")) {
+        const eletrodosStr = user_lower.split("de uma pilha de")[1].trim();
+        response = calcularVoltagemPilha(eletrodosStr);
+        chatState.currentQuestionData = null;
+    } 
+    // 2. Lógica para responder questões do quiz
+    else if (chatState.currentQuestionData) {
+        const questionData = chatState.currentQuestionData;
+        const correct_answer_letter = questionData.resposta_correta.toLowerCase();
+
+        if (user_lower === "sim") {
+            response = generateQuestion();
+            if (response.includes("Não há mais questões disponíveis.")) {
+                chatState.currentQuestionData = null;
+            }
+        } else if (user_lower === "não") {
+            response = "Ótimo. Deseja mais alguma coisa?";
+            chatState.currentQuestionData = null;
+        } else if (['a', 'b', 'c', 'd', 'e'].includes(user_lower)) {
+            const explanationPrompt = (
+                `Para a questão: '${questionData.pergunta}'\n` +
+                `A alternativa correta é '(${correct_answer_letter.toUpperCase()})'. ` +
+                `Forneça a justificativa conceitual e quimicamente ACURADA para esta alternativa, ` +
+                `focando nos princípios da eletroquímica. ` +
+                `Seja conciso e preciso. **NÃO re-afirme a letra da alternativa correta, ` +
+                `NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**`
+            );
+            const explanation = await callOpenRouterAPI(explanationPrompt, SYSTEM_PROMPT_CHATBOT);
+            const isCorrect = (user_lower === correct_answer_letter);
+            if (isCorrect) {
+                response = `Você acertou! A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
+            } else {
+                response = `Você errou. A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
+            }
+        } else {
+            chatState.currentQuestionData = null; 
+            const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
+            response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
+        }
+    }
+    // 3. Gerar questões se o usuário pedir
+    else if (user_lower.includes("gerar questões") || user_lower.includes("questões enem") || user_lower.includes("questão")) {
+        response = generateQuestion();
+    }
+    // 4. Consulta geral
+    else {
+        const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
+        response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
+    }
+
+    return response;
+}
+
+// ==========================================================
+// FUNÇÕES DE UI (CHAT)
+// ==========================================================
+
 function displayMessage(message, sender) {
     const chatContainer = document.getElementById('chat-container'); 
     if (!chatContainer) {
@@ -212,7 +376,6 @@ function displayMessage(message, sender) {
     return messageElement;
 }
 
-// Formata mensagem (Markdown simples)
 function formatMessage(text) {
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
@@ -221,7 +384,6 @@ function formatMessage(text) {
     return text;
 }
 
-// Adiciona sugestões rápidas ao chat
 function addSuggestionsToChat(suggestions) {
     const chatContainer = document.getElementById('chat-container'); 
     if (!chatContainer) return;
@@ -233,7 +395,7 @@ function addSuggestionsToChat(suggestions) {
         button.textContent = suggestionText;
         button.onclick = () => {
             document.getElementById('user-input').value = suggestionText;
-            processUserQuery(suggestionText);
+            handleUserQuery(suggestionText);
             removeSuggestionsFromChat();
         };
         suggestionsContainer.appendChild(button);
@@ -242,7 +404,6 @@ function addSuggestionsToChat(suggestions) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// Remove sugestões do chat
 function removeSuggestionsFromChat() {
     const chatContainer = document.getElementById('chat-container'); 
     if (!chatContainer) return;
@@ -250,7 +411,6 @@ function removeSuggestionsFromChat() {
     suggestionContainers.forEach(container => container.remove());
 }
 
-// Carrega histórico do localStorage
 function loadChatHistory() {
     const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
     chatHistory.forEach(msg => {
@@ -258,20 +418,18 @@ function loadChatHistory() {
     });
 }
 
-// Salva histórico no localStorage
 function saveChatHistory() {
     const chatContainer = document.getElementById('chat-container'); 
     if (!chatContainer) return;
     const messages = Array.from(chatContainer.children)
-                               .filter(msgElement => msgElement.classList.contains('message') && !msgElement.classList.contains('typing') && !msgElement.classList.contains('suggestions-container'))
-                               .map(msgElement => ({
-                                   text: msgElement.innerText,
-                                   sender: msgElement.classList.contains('user') ? 'user' : 'bot'
-                               }));
+        .filter(msgElement => msgElement.classList.contains('message') && !msgElement.classList.contains('typing') && !msgElement.classList.contains('suggestions-container'))
+        .map(msgElement => ({
+            text: msgElement.innerText,
+            sender: msgElement.classList.contains('user') ? 'user' : 'bot'
+        }));
     localStorage.setItem('chatHistory', JSON.stringify(messages));
 }
 
-// Limpa histórico do chat
 function clearChatHistory() {
     localStorage.removeItem('chatHistory');
     const chatContainer = document.getElementById('chat-container');
@@ -289,45 +447,32 @@ function clearChatHistory() {
     addSuggestionsToChat(['calcular pilha cobre e zinco']);
 }
 
-// Processa a consulta do usuário e responde
-async function processUserQuery(user_input) {
+async function handleUserQuery(user_input) {
     if (!user_input.trim()) return;
 
-    const cleanedInput = user_input.trim();
-    displayMessage(cleanedInput, 'user');
+    displayMessage(user_input, 'user');
     document.getElementById('user-input').value = '';
 
     const loadingIndicator = document.getElementById('loading-indicator');
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
     try {
-        const apiKey = ensureApiKey();
-        if (!apiKey) {
-            displayMessage("Por favor, insira sua chave API para usar a IA.", 'bot');
-            if (loadingIndicator) loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        let ai_response;
-
-        if (cleanedInput.toLowerCase().startsWith('calcular pilha ')) {
-            const eletrodosStr = cleanedInput.toLowerCase().replace('calcular pilha ', '');
-            ai_response = calcularVoltagemPilha(eletrodosStr);
-        } else {
-            ai_response = await callOpenRouterAPI(cleanedInput, apiKey);
-        }
+        const response = await processUserQuery(user_input);
 
         if (loadingIndicator) loadingIndicator.style.display = 'none';
-        if (ai_response) displayMessage(ai_response, 'bot');
+        if (response) displayMessage(response, 'bot');
+        saveChatHistory();
     } catch (error) {
         if (loadingIndicator) loadingIndicator.style.display = 'none';
         displayMessage("Ocorreu um erro ao tentar obter a resposta. Por favor, tente novamente.", 'bot');
     }
 }
 
-// Inicialização do chatbot ao carregar a página
+// ==========================================================
+// INICIALIZAÇÃO DO CHATBOT AO CARREGAR A PÁGINA
+// ==========================================================
+
 document.addEventListener('DOMContentLoaded', async () => {
-    ensureApiKey();
     await loadPotentialsTable();
     await loadKnowledgeBase();
     await loadQuestions();
@@ -339,8 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (sendButton) {
         sendButton.addEventListener('click', () => {
-            processUserQuery(userInput.value);
-            saveChatHistory();
+            handleUserQuery(userInput.value);
         });
     }
     if (userInput) {
