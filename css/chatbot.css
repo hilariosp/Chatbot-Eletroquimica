@@ -5,7 +5,6 @@
     --text-light: #f8f9fa;
 }
 
-/* --- General Styles --- */
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bg-dark);
@@ -13,43 +12,43 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    line-height: 1.6; /* Added from previous output */
+    line-height: 1.6;
 }
 
 a {
     text-decoration: none;
-    color: var(--accent-color); /* Added from previous output */
+    color: var(--accent-color);
 }
 
 a:hover {
-    color: var(--text-light); /* Added from previous output */
+    color: var(--text-light);
 }
 
-h1, h2, h3, h4, h5, h6 { /* Added from previous output */
+h1, h2, h3, h4, h5, h6 {
     color: var(--text-light);
     margin-bottom: 0.5em;
 }
 
-.text-white { /* Added from previous output */
+.text-white {
     color: var(--text-light) !important;
 }
 
-.text-danger { /* Added from previous output */
+.text-danger {
     color: var(--accent-color) !important;
 }
 
-.btn-danger { /* Added from previous output */
+.btn-danger {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: var(--text-light);
 }
 
-.btn-danger:hover { /* Added from previous output */
-    background-color: #c82333; /* A slightly darker red for hover */
+.btn-danger:hover {
+    background-color: #c82333;
     border-color: #c82333;
 }
 
-.btn-custom { /* Added from previous output */
+.btn-custom {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: var(--text-light);
@@ -58,7 +57,7 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     transition: all 0.3s ease;
 }
 
-.btn-custom:hover { /* Added from previous output */
+.btn-custom:hover {
     background-color: #c82333;
     border-color: #c82333;
     transform: translateY(-2px);
@@ -69,7 +68,6 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     padding: 0 !important;
 }
 
-/* --- Navbar (index.html, added from previous output) --- */
 .navbar-custom {
     background-color: var(--bg-dark);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -98,8 +96,6 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     color: var(--accent-color) !important;
 }
 
-
-/* Sidebar */
 .sidebar {
     background-color: var(--bg-darker);
     border-right: 1px solid #333;
@@ -107,23 +103,23 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     position: fixed;
     z-index: 1000;
     width: 260px;
-    display: flex; /* Added from previous output */
-    flex-direction: column; /* Added from previous output */
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); /* Added from previous output */
-    left: 0; /* Added from previous output */
-    top: 0; /* Added from previous output */
-    transition: transform 0.3s ease-in-out; /* Added from previous output */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    left: 0;
+    top: 0;
+    transition: transform 0.3s ease-in-out;
 }
 
-.sidebar.hidden { /* Added from previous output */
-    transform: translateX(-260px); /* Adjusted width */
+.sidebar.hidden {
+    transform: translateX(-260px);
 }
 
-.sidebar h2 { /* Added from previous output */
+.sidebar h2 {
     font-weight: 700;
 }
 
-.sidebar-toggler { /* Added from previous output */
+.sidebar-toggler {
     background: none;
     border: none;
     color: var(--text-light);
@@ -131,61 +127,56 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     cursor: pointer;
 }
 
-.sidebar-content { /* Added from previous output */
+.sidebar-content {
     flex-grow: 1;
     overflow-y: auto;
     padding-bottom: 1rem;
 }
 
-/* Main Content */
 .content {
     margin-left: 260px;
     height: 100vh;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-dark);
-    transition: margin-left 0.3s ease-in-out; /* Added from previous output */
+    transition: margin-left 0.3s ease-in-out;
 }
 
-.content.sidebar-hidden { /* Added from previous output */
+.content.sidebar-hidden {
     margin-left: 0;
 }
 
-/* Chat Area */
 .chat-area {
     flex-grow: 1;
     overflow-y: auto;
     padding: 1rem;
     background-color: var(--bg-dark);
-    display: flex; /* Added from previous output */
-    flex-direction: column; /* Added from previous output */
-    justify-content: flex-end; /* Keeps content at the bottom, added from previous output */
+    display: flex;
+    flex-direction: column;
 }
 
-.chat-area .text-center { /* Added from previous output */
-    flex-grow: 1; /* Pushes the input area to the bottom */
+.chat-area .text-center {
+    flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding-bottom: 100px; /* Space for the input area */
+    padding-bottom: 100px;
 }
 
-.chat-area h2 { /* Added from previous output */
+.chat-area h2 {
     font-weight: 700;
 }
 
-
-/* Input Area */
 .input-area {
     background-color: var(--bg-darker);
     padding: 1rem;
     border-top: 1px solid #333;
-    position: sticky; /* Added from previous output */
-    bottom: 0; /* Added from previous output */
-    width: 100%; /* Added from previous output */
-    left: 0; /* Added from previous output */
-    box-sizing: border-box; /* Added from previous output */
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    box-sizing: border-box;
 }
 
 .input-area textarea {
@@ -200,31 +191,30 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     width: 100%;
 }
 
-.input-area .d-flex { /* Added from previous output */
+.input-area .d-flex {
     background-color: var(--bg-dark) !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem !important;
 }
 
-#user-input { /* Added from previous output */
+#user-input {
     flex-grow: 1;
     background-color: transparent;
     border: none;
     color: var(--text-light);
     resize: none;
     overflow: hidden;
-    min-height: 42px; /* Same height as button */
+    min-height: 42px;
     padding: 0.5rem 1rem;
     font-size: 1rem;
     outline: none;
     box-shadow: none;
 }
 
-#user-input::placeholder { /* Added from previous output */
+#user-input::placeholder {
     color: rgba(255, 255, 255, 0.6);
 }
 
-/* Messages */
 .message {
     max-width: 85%;
     margin-bottom: 1rem;
@@ -232,8 +222,8 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     line-height: 1.5;
     animation: fadeIn 0.3s ease-out;
     word-wrap: break-word;
-    opacity: 1; /* Added from previous output */
-    transition: opacity 0.5s; /* Added from previous output */
+    opacity: 1;
+    transition: opacity 0.5s;
 }
 
 .user-message {
@@ -241,7 +231,7 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     background-color: var(--accent-color);
     color: white;
     border-radius: 1rem 1rem 0 1rem;
-    justify-content: flex-end; /* Added from previous output */
+    justify-content: flex-end;
 }
 
 .bot-message {
@@ -250,35 +240,34 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     color: white;
     border-radius: 1rem 1rem 1rem 0;
     padding: 1rem;
-    justify-content: flex-start; /* Added from previous output */
+    justify-content: flex-start;
 }
 
-.message-bubble { /* Added from previous output */
+.message-bubble {
     display: flex;
     margin-bottom: 1rem;
-    max-width: 80%; /* Slightly more conservative max-width for bubbles */
+    max-width: 80%;
 }
 
 .message-content {
     margin-bottom: 0.25rem;
-    line-height: 1.6; /* Added from previous output */
-    word-wrap: break-word; /* Added from previous output */
-    white-space: pre-wrap; /* Preserve whitespace and breaks, added from previous output */
-    font-size: 1rem; /* Added from previous output */
-    max-width: 100%; /* Added from previous output */
+    line-height: 1.6;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size: 1rem;
+    max-width: 100%;
 }
 
-.message-content strong { /* Added from previous output */
+.message-content strong {
     color: #f8f9fa;
     font-weight: 600;
 }
 
-.message-content em { /* Added from previous output */
+.message-content em {
     color: #ddd;
     font-style: italic;
 }
 
-/* New Chat Button */
 .new-chat-btn {
     background-color: var(--accent-color);
     color: white;
@@ -299,7 +288,6 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     background-color: #c82333;
 }
 
-/* Responsive Design */
 @media (max-width: 991.98px) {
     .sidebar {
         width: 100%;
@@ -307,60 +295,60 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
         position: relative;
         border-right: none;
         border-bottom: 1px solid #333;
-        transform: translateX(0); /* Ensure sidebar is visible by default on mobile */
+        transform: translateX(0);
     }
 
-    .sidebar.show { /* Added for explicit mobile sidebar toggle */
+    .sidebar.show {
         transform: translateX(0);
     }
 
     .content {
         margin-left: 0 !important;
-        height: calc(100vh - 60px); /* Adjust height for static sidebar */
+        height: calc(100vh - 60px);
     }
 
     .message {
         max-width: 90%;
     }
 
-    .sidebar-toggler { /* Added from previous output */
+    .sidebar-toggler {
         display: block !important;
     }
 
-    .hero-section h1 { /* Added from previous output */
+    .hero-section h1 {
         font-size: 2.5rem;
     }
 
-    .hero-section p.lead { /* Added from previous output */
+    .hero-section p.lead {
         font-size: 1rem;
     }
 
-    .display-5 { /* Added from previous output */
+    .display-5 {
         font-size: 2rem;
     }
 
-    .card-custom { /* Added from previous output */
+    .card-custom {
         padding: 1.5rem !important;
     }
 
-    .feature-icon { /* Added from previous output */
+    .feature-icon {
         font-size: 2.5rem;
     }
 
-    .card-custom h3 { /* Added from previous output */
+    .card-custom h3 {
         font-size: 1.5rem;
     }
 
-    .message-bubble { /* Adjusted for smaller screens from previous output */
+    .message-bubble {
         max-width: 95%;
     }
 }
 
-@media (max-width: 768px) { /* Added additional breakpoint for more fine-tuning */
+@media (max-width: 768px) {
     .sidebar {
         width: 250px;
         transform: translateX(-250px);
-        position: fixed; /* Ensure it stays fixed even when hidden */
+        position: fixed;
         height: 100%;
     }
 
@@ -377,8 +365,6 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     }
 }
 
-
-/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -412,45 +398,42 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     40% { transform: scale(1); }
 }
 
-/* Send Button */
 #send-button {
     background-color: var(--accent-color);
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-light); /* Added from previous output */
-    width: 42px; /* Added from previous output */
-    height: 42px; /* Added from previous output */
-    border-radius: 50% !important; /* Added from previous output */
-    padding: 0; /* Added from previous output */
-    flex-shrink: 0; /* Added from previous output */
+    color: var(--text-light);
+    width: 42px;
+    height: 42px;
+    border-radius: 50% !important;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 #send-button:hover {
     background-color: #c82333;
 }
 
-/* Message styling */
 .message-time {
-    display: block; /* Para que a hora fique em sua própria linha */
+    display: block;
     font-size: 0.8em;
     color: #aaa;
-    margin-bottom: 5px; /* Espaço entre a hora e a mensagem */
-    opacity: 0.7; /* Added from previous output */
-    text-align: right; /* Added from previous output */
+    margin-bottom: 5px;
+    opacity: 0.7;
+    text-align: right;
 }
 
 .user-message .message-time {
-    text-align: right; /* Alinha a hora à direita nas mensagens do usuário (opcional) */
-    color: rgba(255, 255, 255, 0.8); /* Added from previous output */
+    text-align: right;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .bot-message .message-time {
-    color: rgba(255, 255, 255, 0.6); /* Added from previous output */
+    color: rgba(255, 255, 255, 0.6);
 }
 
-/* Chat history */
 .chat-history {
     padding: 0.75rem 1rem;
     color: #aaa;
@@ -494,22 +477,19 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     opacity: 1;
 }
 
-/* Estilo para fórmulas LaTeX */
-.latex { /* Merged with latex-inline, keeping this for broader compatibility */
+.latex {
     font-family: "Courier New", monospace;
-    background-color: rgba(45, 45, 45, 0.5); /* Adjusted from previous output for consistency */
+    background-color: rgba(45, 45, 45, 0.5);
     padding: 2px 5px;
     border-radius: 3px;
     font-size: 1.1em;
 }
 
-/* Efeito hover nos botões de deletar */
 .delete-chat-btn:hover {
     transform: scale(1.1);
     transition: transform 0.2s;
 }
 
-/* Estilos para fórmulas LaTeX */
 .latex-block {
     display: block;
     font-family: "Courier New", monospace;
@@ -522,7 +502,7 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     overflow-x: auto;
 }
 
-.latex-inline { /* Merged with latex, keeping this for explicit use if needed */
+.latex-inline {
     font-family: "Courier New", monospace;
     background-color: rgba(45, 45, 45, 0.5);
     padding: 2px 5px;
@@ -530,7 +510,6 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     font-size: 1.1em;
 }
 
-/* Melhorias para listas */
 .message ul {
     padding-left: 20px;
     margin: 10px 0;
@@ -541,42 +520,40 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     line-height: 1.5;
 }
 
-/* Garante que o chat não suma ao recarregar */
 #chat-container {
     min-height: 70vh;
     background-color: var(--bg-dark);
     transition: all 0.3s ease;
 }
 
-/* Estilos para o modal de confirmação de exclusão */
 #confirm-delete {
-    display: none; /* Inicialmente escondido */
-    position: fixed; /* Ou 'absolute' se você quiser que ele role com a página */
+    display: none;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente para escurecer o resto */
-    justify-content: center; /* Centraliza horizontalmente os filhos */
-    align-items: center; /* Centraliza verticalmente os filhos */
-    z-index: 1000; /* Garante que ele fique acima de outros elementos */
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 .confirm-delete-box {
-    background-color: #343a40; /* Cor de fundo da caixa do modal (a mesma do input-area) */
+    background-color: #343a40;
     color: white;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     text-align: center;
-    width: 80%; /* Largura da caixa do modal (ajuste conforme necessário) */
-    max-width: 400px; /* Largura máxima para telas maiores */
+    width: 80%;
+    max-width: 400px;
 }
 
 .confirm-delete-box h4 {
     margin-top: 0;
     margin-bottom: 15px;
-    color: #dc3545; /* Cor vermelha para o título de confirmação */
+    color: #dc3545;
 }
 
 .confirm-delete-box p {
@@ -607,12 +584,12 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
 }
 
 .confirm-delete-box .d-flex {
-    gap: 10px; /* Ajusta o espaçamento entre os botões */
+    gap: 10px;
 }
 
 .suggestions {
-    margin-top: 1.5rem !important; /* Aumenta um pouco o espaçamento do topo */
-    padding: 0.5rem; /* Adiciona um pequeno padding interno */
+    margin-top: 1.5rem !important;
+    padding: 0.5rem;
 }
 
 .suggestion-card {
@@ -620,33 +597,32 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     border-radius: 0.5rem;
     cursor: pointer;
     transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    background-color: #dc3545; /* Cor de fundo clara */
+    background-color: #dc3545;
 }
 
 .suggestion-card:hover {
     transform: scale(1.02);
     box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
-    background-color: #c82333; /* Cor de fundo levemente mais escura ao passar o mouse */
+    background-color: #c82333;
 }
 
 .suggestion-card .card-body {
     padding: 1rem;
-    text-align: center; /* Centraliza o conteúdo do card */
+    text-align: center;
 }
 
 .suggestion-card .card-title {
     font-size: 1rem;
     margin-bottom: 0.5rem;
-    color: #333; /* Cor do título */
+    color: #333;
 }
 
 .suggestion-card .card-text {
     font-size: 0.875rem;
-    color: white; /* Cor do texto pequeno */
+    color: white;
     margin-bottom: 0;
 }
 
-/* Estilos para o layout em colunas (Bootstrap já cuida disso, mas para referência) */
 .suggestions .row {
     margin-left: -0.75rem;
     margin-right: -0.75rem;
@@ -655,7 +631,7 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
 .suggestions .col {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
-    margin-bottom: 1rem; /* Espaçamento entre as linhas de cards */
+    margin-bottom: 1rem;
 }
 
 .transparent-toggler {
@@ -683,16 +659,14 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     transform: scale(0.98);
 }
 
-/* Opcional: Adaptação para telas menores (se necessário) */
 @media (max-width: 575.98px) {
     .suggestions .col {
         margin-bottom: 0.75rem;
     }
 }
 
-/* --- Hero Section (index.html, added from previous output) --- */
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1542382902-b0542368c818') no-repeat center center/cover; /* Placeholder image, consider replacing */
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1542382902-b0542368c818') no-repeat center center/cover;
     min-height: 80vh;
     display: flex;
     align-items: center;
@@ -700,7 +674,7 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     color: var(--text-light);
     position: relative;
     overflow: hidden;
-    padding: 80px 0; /* Add padding for smaller screens */
+    padding: 80px 0;
 }
 
 .hero-section::before {
@@ -731,7 +705,6 @@ h1, h2, h3, h4, h5, h6 { /* Added from previous output */
     margin: 0 auto 3rem auto;
 }
 
-/* --- Features Section (index.html, added from previous output) --- */
 section.py-5 {
     background-color: var(--bg-darker);
 }
@@ -769,7 +742,6 @@ section.py-5 {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* --- CTA Section (index.html, added from previous output) --- */
 .bg-dark {
     background-color: var(--bg-dark) !important;
 }
@@ -779,7 +751,6 @@ section.py-5 {
     font-weight: 700;
 }
 
-/* --- Footer (index.html, added from previous output) --- */
 footer {
     background-color: var(--bg-dark);
     color: rgba(255, 255, 255, 0.7);
