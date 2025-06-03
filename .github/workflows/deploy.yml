@@ -66,21 +66,21 @@ jobs:
             exit 1
           fi
 
+      # Adiciona uma etapa para listar todos os arquivos recursivamente antes de fazer o upload
+      - name: List files before upload (for debugging)
+        run: |
+          echo "--- Listing all files recursively before artifact upload: ---"
+          ls -R .
+          echo "--- End of file list ---"
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # MUDANÇA CRÍTICA AQUI: Use uma lista YAML para os caminhos.
-          # Cada item da lista é um caminho separado.
-          path:
-            - ./ 
-            - ./css 
-            - ./js 
-            - ./data 
-            - ./images 
-            # Adicione outras pastas ou arquivos específicos se houver
+          # Volta para o caminho simples '.' que deve incluir tudo na raiz e subdiretórios
+          path: . 
             
       - name: Deploy to GitHub Pages
         id: deployment
