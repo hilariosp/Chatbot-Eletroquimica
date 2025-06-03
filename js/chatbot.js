@@ -1,69 +1,21 @@
-/**
- * @file chatbot.js
- * @description Este arquivo contém toda a lógica do frontend para o chatbot PilhIA,
- * incluindo gerenciamento de estado, carregamento de dados (questões, tabela de potenciais,
- * base de conhecimento), interação com a API do OpenRouter, processamento de consultas
- * do usuário, e toda a manipulação da interface do usuário e persistência de dados
- * do chat via localStorage.
- *
- * As chaves da API do OpenRouter são carregadas de variáveis de ambiente (VITE_OPENROUTER_API_KEYS)
- * injetadas pelo Vite durante o processo de build para maior segurança.
- */
-
-// Objeto global para manter o estado do chat da IA.
 const chatState = {
-    chatId: null, // ID da sessão de chat atual
-    currentQuestionData: null, // Armazena os dados da questão atual em jogo
-    questionsList: [], // Lista de questões de eletroquímica carregadas
-    potentialsTable: {}, // Tabela de potenciais padrão de eletrodos carregada
-    knowledgeBase: "" // Conteúdo da base de conhecimento para a IA
+    chatId: null,
+    currentQuestionData: null,
+    questionsList: [],
+    potentialsTable: {},
+    knowledgeBase: ""
 };
 
-/**
- * @type {string[]} OPENROUTER_API_KEYS
- * @description Array para armazenar as chaves da API do OpenRouter.
- * Estas chaves são carregadas de variáveis de ambiente (VITE_OPENROUTER_API_KEYS)
- * injetadas pelo Vite durante o processo de build para segurança.
- */
-let OPENROUTER_API_KEYS = [];
-try {
-    // Acessa a variável de ambiente VITE_OPENROUTER_API_KEYS, que é injetada pelo Vite.
-    // O '|| "[]"' garante que, se a variável não estiver definida, ele use uma string vazia
-    // de array JSON para evitar erros de parse.
-    const apiKeysString = import.meta.env.VITE_OPENROUTER_API_KEYS || "[]";
-    OPENROUTER_API_KEYS = JSON.parse(apiKeysString);
+let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%";
 
-    // Verifica se o resultado do parse é realmente um array.
-    if (!Array.isArray(OPENROUTER_API_KEYS)) {
-        OPENROUTER_API_KEYS = [];
-        console.error("VITE_OPENROUTER_API_KEYS não é um array JSON válido. Usando array vazio para as chaves da API.");
-    }
-} catch (e) {
-    // Captura erros durante o parse do JSON da variável de ambiente.
-    console.error("Erro ao parsear VITE_OPENROUTER_API_KEYS:", e);
-    OPENROUTER_API_KEYS = []; // Em caso de erro, define como um array vazio.
-}
-
-/**
- * @function getRandomOpenRouterApiKey
- * @description Seleciona uma chave de API aleatória da lista de chaves disponíveis.
- * @returns {string|null} Uma chave de API aleatória ou null se nenhuma chave estiver configurada.
- */
 function getRandomOpenRouterApiKey() {
-    if (OPENROUTER_API_KEYS.length === 0) {
-        console.error("Erro: Nenhuma chave da API do OpenRouter configurada ou carregada. A IA não estará disponível.");
+    if (!openRouterApiKey || openRouterApiKey === "%%OPENROUTER_API_KEY_PLACEHOLDER%%") {
+        console.error("Erro: Nenhuma chave da API do OpenRouter configurada. A IA não estará disponível.");
         return null;
     }
-    const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
-    return OPENROUTER_API_KEYS[randomIndex];
+    return openRouterApiKey;
 }
 
-/**
- * @async
- * @function loadQuestions
- * @description Carrega as questões de eletroquímica de um arquivo JSON local.
- * Formata as questões para uso no chat.
- */
 async function loadQuestions() {
     try {
         const response = await fetch('./data/questoes/eletroquimica.json');
@@ -74,14 +26,12 @@ async function loadQuestions() {
 
         let formattedQuestions = [];
         if (Array.isArray(data)) {
-            // Limita a 10 questões para evitar sobrecarga, se houver muitas.
             data.slice(0, 10).forEach(item => {
                 const questionText = item.questao;
                 const alternatives = item.alternativas;
                 const correctAnswer = item.resposta_correta;
                 if (questionText && alternatives && correctAnswer) {
                     let formattedAnswer = `${questionText}\n`;
-                    // Limita a 4 alternativas para o formato de exibição.
                     Object.entries(alternatives).slice(0, 4).forEach(([letter, option]) => {
                         formattedAnswer += `(${letter.toUpperCase()}) ${option}\n`;
                     });
@@ -93,7 +43,6 @@ async function loadQuestions() {
                 }
             });
         } else if (typeof data === 'object' && data !== null) {
-            // Caso o JSON contenha apenas uma questão (objeto único)
             const questionText = data.questao;
             const alternatives = data.alternativas;
             const correctAnswer = data.resposta_correta;
@@ -114,15 +63,10 @@ async function loadQuestions() {
         console.log(`✅ ${chatState.questionsList.length} questões carregadas.`);
     } catch (error) {
         console.error("⚠️ Erro ao carregar questões:", error);
-        chatState.questionsList = []; // Garante que a lista esteja vazia em caso de erro.
+        chatState.questionsList = [];
     }
 }
 
-/**
- * @async
- * @function loadPotentialsTable
- * @description Carrega a tabela de potenciais padrão de um arquivo JSON local.
- */
 async function loadPotentialsTable() {
     try {
         const response = await fetch('./data/tabelas/tabela_potenciais.json');
@@ -143,16 +87,10 @@ async function loadPotentialsTable() {
         console.log("✅ Tabela de potenciais carregada.");
     } catch (error) {
         console.error("⚠️ Erro ao carregar tabela de potenciais:", error);
-        chatState.potentialsTable = {}; // Garante que a tabela esteja vazia em caso de erro.
+        chatState.potentialsTable = {};
     }
 }
 
-/**
- * @async
- * @function loadKnowledgeBase
- * @description Carrega o conteúdo da base de conhecimento de eletroquímica de um arquivo JSON local.
- * Limita o tamanho do conteúdo para evitar exceder o limite de tokens da API.
- */
 async function loadKnowledgeBase() {
     let content = "";
     const knowledgeBaseFile = './data/basededados/eletroquimica.json';
@@ -168,7 +106,6 @@ async function loadKnowledgeBase() {
 
         let fileText = "";
         if (Array.isArray(jsonData)) {
-            // Se for um array de objetos, formata cada item.
             fileText = jsonData.map(item => {
                 let formattedItem = "";
                 if (item.topico) formattedItem += `Tópico: ${item.topico}\n`;
@@ -179,27 +116,18 @@ async function loadKnowledgeBase() {
                 return formattedItem;
             }).join("\n---\n");
         } else {
-            // Se for um objeto único, stringify.
             fileText = JSON.stringify(jsonData, null, 2);
         }
 
-        // Adiciona o conteúdo da base de dados, limitando o tamanho.
         content += `\n--- Conteúdo de ${knowledgeBaseFile} ---\n${fileText.substring(0, 7500)}\n`;
-        chatState.knowledgeBase = content.substring(0, 8000); // Limite final para a base de conhecimento.
+        chatState.knowledgeBase = content.substring(0, 8000);
         console.log(`📖 Base de dados carregada (${chatState.knowledgeBase.length} caracteres).`);
     } catch (error) {
         console.error(`⚠️ Erro ao ler ou processar a base de dados JSON '${knowledgeBaseFile}':`, error);
-        chatState.knowledgeBase = ""; // Garante que a base de conhecimento esteja vazia em caso de erro.
+        chatState.knowledgeBase = "";
     }
 }
 
-/**
- * @function calcularVoltagemPilha
- * @description Calcula a voltagem de uma pilha dados dois eletrodos,
- * usando a tabela de potenciais carregada.
- * @param {string} eletrodosStr Uma string contendo os dois eletrodos separados por 'e' (ex: 'cobre e zinco').
- * @returns {string} A voltagem calculada ou uma mensagem de erro.
- */
 function calcularVoltagemPilha(eletrodosStr) {
     const eletrodos = eletrodosStr.split(' e ').map(e => e.trim().toLowerCase()).filter(e => e);
 
@@ -211,7 +139,6 @@ function calcularVoltagemPilha(eletrodosStr) {
     for (const eletrodo of eletrodos) {
         let foundMatch = false;
         for (const keyMetal in chatState.potentialsTable) {
-            // Procura por correspondência parcial no nome do metal na tabela
             if (keyMetal.includes(eletrodo)) {
                 potentials[eletrodo] = chatState.potentialsTable[keyMetal];
                 foundMatch = true;
@@ -227,7 +154,6 @@ function calcularVoltagemPilha(eletrodosStr) {
         return "Não foi possível encontrar potenciais para ambos os eletrodos. Verifique a grafia.";
     }
 
-    // Identifica cátodo (maior potencial) e ânodo (menor potencial)
     const catodoName = Object.keys(potentials).reduce((a, b) => potentials[a] > potentials[b] ? a : b);
     const anodoName = Object.keys(potentials).reduce((a, b) => potentials[a] < potentials[b] ? a : b);
     const voltagem = potentials[catodoName] - potentials[anodoName];
@@ -235,31 +161,15 @@ function calcularVoltagemPilha(eletrodosStr) {
     return `A voltagem da pilha com ${catodoName.charAt(0).toUpperCase() + catodoName.slice(1)} e ${anodoName.charAt(0).toUpperCase() + anodoName.slice(1)} é de ${voltagem.toFixed(2)} V.`;
 }
 
-/**
- * @function generateQuestion
- * @description Seleciona uma questão aleatória da lista de questões carregadas.
- * @returns {string} A pergunta formatada da questão ou uma mensagem de que não há questões.
- */
 function generateQuestion() {
     if (chatState.questionsList.length === 0) {
         return "Não há mais questões disponíveis.";
     }
     const q = chatState.questionsList[Math.floor(Math.random() * chatState.questionsList.length)];
-    chatState.currentQuestionData = q; // Armazena a questão atual para futuras interações.
+    chatState.currentQuestionData = q;
     return q.pergunta;
 }
 
-/**
- * @async
- * @function callOpenRouterAPI
- * @description Faz uma chamada à API do OpenRouter para gerar uma resposta da IA.
- * @param {string} prompt O prompt do usuário para a IA.
- * @param {string} systemPrompt O prompt do sistema que define o comportamento da IA.
- * @param {string} [model="meta-llama/llama-3.2-3b-instruct:free"] O modelo da IA a ser usado.
- * @param {number} [temperature=0.5] A temperatura para a geração da IA (controla a criatividade).
- * @param {number} [max_tokens=1500] O número máximo de tokens na resposta da IA.
- * @returns {Promise<string>} A resposta da IA ou uma mensagem de erro.
- */
 async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama-3.2-3b-instruct:free", temperature = 0.5, max_tokens = 1500) {
     const currentApiKey = getRandomOpenRouterApiKey();
     if (!currentApiKey) {
@@ -277,8 +187,8 @@ async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama
             headers: {
                 "Authorization": "Bearer " + currentApiKey,
                 "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin, // Necessário para OpenRouter
-                "X-Title": "PilhIA Frontend" // Necessário para OpenRouter
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "PilhIA Frontend"
             },
             body: JSON.stringify({
                 model: model,
@@ -326,7 +236,6 @@ async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama
     }
 }
 
-// Prompt do sistema para o chatbot PilhIA, definindo seu comportamento e restrições.
 const SYSTEM_PROMPT_CHATBOT = `
 Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroquímica, baterias, eletrólise e pilha de Daniell.
 
@@ -360,39 +269,27 @@ Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroqu
 - Confirme se respondeu adequadamente à dúvida.
 `;
 
-/**
- * @async
- * @function processUserQuery
- * @description Processa a entrada do usuário, determinando a intenção e gerando uma resposta.
- * @param {string} user_input A consulta do usuário.
- * @returns {Promise<string>} A resposta do chatbot.
- */
 async function processUserQuery(user_input) {
     const user_lower = user_input.toLowerCase();
     let response = "";
 
-    // Verifica se a consulta é para calcular voltagem de pilha
     if (user_lower.includes("calcular a voltagem de uma pilha de")) {
         const eletrodosStr = user_lower.split("de uma pilha de")[1].trim();
         response = calcularVoltagemPilha(eletrodosStr);
-        chatState.currentQuestionData = null; // Reseta a questão atual se for uma nova consulta.
+        chatState.currentQuestionData = null;
     } else if (chatState.currentQuestionData) {
-        // Se houver uma questão em andamento
         const questionData = chatState.currentQuestionData;
         const correct_answer_letter = questionData.resposta_correta.toLowerCase();
 
         if (user_lower === "sim") {
-            // Se o usuário quer outra questão
             response = generateQuestion();
             if (response.includes("Não há mais questões disponíveis.")) {
                 chatState.currentQuestionData = null;
             }
         } else if (user_lower === "não") {
-            // Se o usuário não quer mais questões
             response = "Ótimo. Deseja mais alguma coisa?";
             chatState.currentQuestionData = null;
         } else if (['a', 'b', 'c', 'd', 'e'].includes(user_lower)) {
-            // Se o usuário respondeu à questão
             const explanationPrompt = (
                 `Para a questão: '${questionData.pergunta}'\n`
                 + `A alternativa correta é '(${correct_answer_letter.toUpperCase()})'. `
@@ -410,16 +307,13 @@ async function processUserQuery(user_input) {
                 response = `Você errou. A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
             }
         } else {
-            // Se a resposta não for 'sim', 'não' ou uma alternativa, trata como uma consulta geral.
-            chatState.currentQuestionData = null; // Reseta a questão atual.
+            chatState.currentQuestionData = null;
             const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
             response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
         }
     } else if (user_lower.includes("gerar questões") || user_lower.includes("questões enem") || user_lower.includes("questão")) {
-        // Se o usuário pede por questões
         response = generateQuestion();
     } else {
-        // Para todas as outras consultas, usa a base de conhecimento e a IA.
         const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
         response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
     }
@@ -427,13 +321,6 @@ async function processUserQuery(user_input) {
     return response;
 }
 
-// --- Funções de UI e Gerenciamento de Chat (do seu código original) ---
-
-/**
- * @function toggleSidebar
- * @description Alterna a visibilidade da barra lateral.
- * Esta função é chamada diretamente via `onclick` no HTML.
- */
 function toggleSidebar() {
     const sidebarContent = document.getElementById('sidebarContent');
     if (sidebarContent) {
@@ -441,13 +328,9 @@ function toggleSidebar() {
     }
 }
 
-/**
- * @function addSuggestionsToChat
- * @description Adiciona cartões de sugestão de perguntas ao contêiner do chat.
- */
 function addSuggestionsToChat() {
     const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input'); // Obtém o input para preencher
+    const userInput = document.getElementById('user-input');
     if (!chatContainer || !userInput) {
         console.warn("Elementos 'chat-container' ou 'user-input' não encontrados para adicionar sugestões.");
         return;
@@ -494,7 +377,7 @@ function addSuggestionsToChat() {
 
     const existingSuggestions = chatContainer.querySelector('.suggestions');
     if (existingSuggestions) {
-        chatContainer.removeChild(existingSuggestions); // Remove sugestões existentes antes de adicionar novas
+        chatContainer.removeChild(existingSuggestions);
     }
     chatContainer.appendChild(suggestionsDiv);
 
@@ -503,15 +386,11 @@ function addSuggestionsToChat() {
         card.addEventListener('click', () => {
             const suggestionText = card.getAttribute('data-suggestion');
             userInput.value = suggestionText;
-            userInput.focus(); // Coloca o foco no input após preencher
+            userInput.focus();
         });
     });
 }
 
-/**
- * @function removeSuggestionsFromChat
- * @description Remove os cartões de sugestão do contêiner do chat.
- */
 function removeSuggestionsFromChat() {
     const chatContainer = document.getElementById('chat-container');
     if (!chatContainer) return;
@@ -521,31 +400,22 @@ function removeSuggestionsFromChat() {
     }
 }
 
-let chats = {}; // Objeto para armazenar todas as conversas
-let currentChatId = null; // ID da conversa atual
-let chatToDelete = null; // Usado para confirmar exclusão de chat
+let chats = {};
+let currentChatId = null;
+let chatToDelete = null;
 
-/**
- * @function saveChats
- * @description Salva o objeto 'chats' no localStorage.
- */
 function saveChats() {
     localStorage.setItem('pilhia-chats', JSON.stringify(chats));
 }
 
-/**
- * @function loadChatHistory
- * @description Carrega e exibe o histórico de chats na barra lateral.
- */
 function loadChatHistory() {
     const chatHistoryContainer = document.getElementById('chat-history-container');
     if (!chatHistoryContainer) {
         console.warn("Elemento 'chat-history-container' não encontrado.");
         return;
     }
-    chatHistoryContainer.innerHTML = ''; // Limpa o histórico antes de recarregar
+    chatHistoryContainer.innerHTML = '';
 
-    // Ordena os chats pela data de criação (mais recente primeiro)
     const sortedChats = Object.values(chats).sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
     );
@@ -561,9 +431,9 @@ function loadChatHistory() {
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-chat-btn';
-        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>'; // Ícone de lixeira (requer Bootstrap Icons ou similar)
+        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
         deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Impede que o clique no botão de exclusão carregue o chat
+            e.stopPropagation();
             showDeleteConfirmation(chat.id);
         });
 
@@ -571,57 +441,46 @@ function loadChatHistory() {
         chatElement.appendChild(deleteBtn);
 
         chatElement.addEventListener('click', () => {
-            loadChat(chat.id); // Carrega o chat ao clicar no item do histórico
+            loadChat(chat.id);
         });
 
         chatHistoryContainer.appendChild(chatElement);
     });
 }
 
-/**
- * @function loadChat
- * @description Carrega uma conversa específica no contêiner principal do chat.
- * @param {string} chatId O ID da conversa a ser carregada.
- */
 function loadChat(chatId) {
     currentChatId = chatId;
     localStorage.setItem('currentChatId', currentChatId);
-    chatState.chatId = currentChatId; // Atualiza o chatState global
+    chatState.chatId = currentChatId;
 
     const chatContainer = document.getElementById('chat-container');
     if (!chatContainer) {
         console.error("Elemento 'chat-container' não encontrado.");
         return;
     }
-    chatContainer.innerHTML = ''; // Limpa o chat atual
+    chatContainer.innerHTML = '';
 
-    removeSuggestionsFromChat(); // Sempre remove sugestões ao carregar um chat
+    removeSuggestionsFromChat();
 
     const chat = chats[chatId];
     if (!chat || chat.messages.length === 0) {
-        // Se o chat não existe ou está vazio, exibe a mensagem de boas-vindas e sugestões
         chatContainer.innerHTML = `
             <div class="text-center mt-5 pt-5">
                 <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
             </div>`;
-        addSuggestionsToChat(); // Adiciona sugestões apenas se o chat estiver vazio
+        addSuggestionsToChat();
     } else {
-        // Exibe as mensagens existentes
         chat.messages.forEach(msg => {
-            addMessage(msg.content, msg.isUser, false); // Não salva novamente ao carregar
+            addMessage(msg.content, msg.isUser, false);
         });
     }
-    chatContainer.scrollTop = chatContainer.scrollHeight; // Rola para o final do chat
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-/**
- * @function createNewChat
- * @description Cria uma nova conversa, reseta o contêiner do chat e exibe sugestões.
- */
 function createNewChat() {
-    currentChatId = 'temp-' + Date.now().toString(); // ID temporário para novos chats
+    currentChatId = 'temp-' + Date.now().toString();
     localStorage.setItem('currentChatId', currentChatId);
-    chatState.chatId = currentChatId; // Atualiza o chatState global
+    chatState.chatId = currentChatId;
 
     const chatContainer = document.getElementById('chat-container');
     const userInput = document.getElementById('user-input');
@@ -634,17 +493,10 @@ function createNewChat() {
         <div class="text-center mt-5 pt-5">
             <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
         </div>`;
-    addSuggestionsToChat(); // Adiciona sugestões para o novo chat
-    userInput.focus(); // Coloca o foco no campo de entrada
+    addSuggestionsToChat();
+    userInput.focus();
 }
 
-/**
- * @function addMessage
- * @description Adiciona uma mensagem ao contêiner principal do chat e, opcionalmente, ao histórico.
- * @param {string} content O conteúdo da mensagem.
- * @param {boolean} isUser True se a mensagem for do usuário, false se for do bot.
- * @param {boolean} [saveToHistory=true] Se a mensagem deve ser salva no localStorage.
- */
 function addMessage(content, isUser = false, saveToHistory = true) {
     const chatContainer = document.getElementById('chat-container');
     if (!chatContainer) {
@@ -657,12 +509,11 @@ function addMessage(content, isUser = false, saveToHistory = true) {
     const minutes = timestamp.getMinutes().toString().padStart(2, '0');
     const timeString = `${hours}:${minutes}`;
 
-    // Lógica para criar um novo chat permanente quando a primeira mensagem do usuário é enviada
     if (isUser && currentChatId.startsWith('temp-')) {
-        const newChatId = Date.now().toString(); // Cria um ID permanente
+        const newChatId = Date.now().toString();
         chats[newChatId] = {
             id: newChatId,
-            title: content.length > 30 ? content.substring(0, 30) + '...' : content, // Título baseado na primeira mensagem
+            title: content.length > 30 ? content.substring(0, 30) + '...' : content,
             messages: [{
                 content,
                 isUser: true,
@@ -670,21 +521,18 @@ function addMessage(content, isUser = false, saveToHistory = true) {
             }],
             createdAt: timestamp.toISOString()
         };
-        currentChatId = newChatId; // Atualiza o ID da conversa atual para o novo ID permanente
+        currentChatId = newChatId;
         localStorage.setItem('currentChatId', currentChatId);
-        chatState.chatId = currentChatId; // Atualiza o chatState global
+        chatState.chatId = currentChatId;
         saveChats();
-        loadChatHistory(); // Recarrega o histórico para mostrar o novo chat
+        loadChatHistory();
     } else if (saveToHistory && chats[currentChatId]) {
-        // Adiciona a mensagem ao chat existente
         const chat = chats[currentChatId];
         chat.messages.push({
             content,
             isUser,
             timestamp: timestamp.toISOString()
         });
-
-        // Atualiza o título do chat se for a primeira mensagem do usuário (e não era um chat temporário)
         if (isUser && chat.messages.length === 1 && !chat.title) {
             chat.title = content.length > 30 ? content.substring(0, 30) + '...' : content;
         }
@@ -692,7 +540,6 @@ function addMessage(content, isUser = false, saveToHistory = true) {
         loadChatHistory();
     }
 
-    // Remove o placeholder de boas-vindas e as sugestões quando uma mensagem é adicionada
     const placeholder = chatContainer.querySelector('.text-center');
     if (placeholder) {
         chatContainer.removeChild(placeholder);
@@ -707,39 +554,29 @@ function addMessage(content, isUser = false, saveToHistory = true) {
     timeSpan.textContent = timeString;
     messageDiv.appendChild(timeSpan);
 
-    // Divide o conteúdo por quebras de linha e cria parágrafos para cada linha
     const lines = content.split('\n');
     lines.forEach(line => {
         const paragraph = document.createElement('p');
-        paragraph.innerHTML = line; // Usa innerHTML para permitir formatação básica se houver
+        paragraph.innerHTML = line;
         messageDiv.appendChild(paragraph);
     });
 
     chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight; // Rola para o final do chat
+    chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-/**
- * @function showTyping
- * @description Exibe um indicador de "digitando" no chat.
- */
 function showTyping() {
     const chatContainer = document.getElementById('chat-container');
     if (!chatContainer) return;
 
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message p-3 bot-message typing-indicator';
-    typingDiv.innerHTML = '<span></span><span></span><span></span>'; // Pontos de digitação
+    typingDiv.innerHTML = '<span></span><span></span><span></span>';
     typingDiv.id = 'typing-indicator';
     chatContainer.appendChild(typingDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-/**
- * @async
- * @function sendMessage
- * @description Lida com o envio de mensagens do usuário para o chatbot.
- */
 async function sendMessage() {
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
@@ -749,41 +586,38 @@ async function sendMessage() {
     }
 
     const message = userInput.value.trim();
-    if (!message) return; // Não envia mensagens vazias
+    if (!message) return;
 
-    // Desabilita o input e o botão para evitar envios múltiplos
     userInput.disabled = true;
-    userInput.value = 'Enviando...'; // Feedback visual
+    userInput.value = 'Enviando...';
     sendButton.disabled = true;
 
-    addMessage(message, true); // Adiciona a mensagem do usuário ao chat
-    userInput.style.height = 'auto'; // Reseta a altura do input
+    addMessage(message, true);
+    userInput.style.height = 'auto';
 
-    showTyping(); // Mostra o indicador de digitação
+    showTyping();
 
     try {
-        const aiResponse = await processUserQuery(message); // Processa a consulta com a IA
+        const aiResponse = await processUserQuery(message);
 
-        document.getElementById('typing-indicator')?.remove(); // Remove o indicador de digitação
+        document.getElementById('typing-indicator')?.remove();
 
-        // Reabilita o input e o botão
         userInput.disabled = false;
-        userInput.value = ''; // Limpa o input
-        userInput.focus(); // Coloca o foco de volta no input
+        userInput.value = '';
+        userInput.focus();
 
         sendButton.disabled = false;
-        sendButton.innerHTML = '<i class="bi bi-arrow-up"></i>'; // Restaura o ícone do botão
+        sendButton.innerHTML = '<i class="bi bi-arrow-up"></i>';
 
-        addMessage(aiResponse, false); // Adiciona a resposta da IA ao chat
+        addMessage(aiResponse, false);
 
     } catch (error) {
         console.error('Erro ao enviar mensagem:', error);
         const typing = document.getElementById('typing-indicator');
-        if (typing) typing.remove(); // Remove o indicador mesmo em caso de erro
+        if (typing) typing.remove();
 
-        // Reabilita e restaura o input e o botão em caso de erro
         userInput.disabled = false;
-        userInput.value = message; // Mantém a mensagem do usuário no input para reenvio
+        userInput.value = message;
         userInput.focus();
 
         sendButton.disabled = false;
@@ -793,88 +627,58 @@ async function sendMessage() {
     }
 }
 
-/**
- * @function showDeleteConfirmation
- * @description Exibe um modal de confirmação para exclusão de chat.
- * @param {string} chatId O ID do chat a ser excluído.
- */
 function showDeleteConfirmation(chatId) {
     const confirmDeleteModal = document.getElementById('confirm-delete');
     if (confirmDeleteModal) {
-        chatToDelete = chatId; // Armazena o ID do chat a ser excluído
-        confirmDeleteModal.style.display = 'flex'; // Exibe o modal
+        chatToDelete = chatId;
+        confirmDeleteModal.style.display = 'flex';
     }
 }
 
-/**
- * @function deleteChat
- * @description Exclui um chat do histórico e do localStorage.
- * @param {string} chatIdToDelete O ID do chat a ser excluído.
- */
 function deleteChat(chatIdToDelete) {
     if (currentChatId === chatIdToDelete) {
-        createNewChat(); // Se o chat atual for excluído, cria um novo
+        createNewChat();
     }
-    delete chats[chatIdToDelete]; // Remove o chat do objeto
-    saveChats(); // Salva as alterações no localStorage
-    loadChatHistory(); // Recarrega o histórico
+    delete chats[chatIdToDelete];
+    saveChats();
+    loadChatHistory();
     const confirmDeleteModal = document.getElementById('confirm-delete');
-    if (confirmDeleteModal) confirmDeleteModal.style.display = 'none'; // Esconde o modal
-    chatToDelete = null; // Reseta a variável
+    if (confirmDeleteModal) confirmDeleteModal.style.display = 'none';
+    chatToDelete = null;
 }
 
-// --- Inicialização da Aplicação e Event Listeners ---
-
-/**
- * @async
- * @function initializeChatApp
- * @description Função de inicialização principal da aplicação.
- * Carrega todos os dados necessários e configura os event listeners.
- */
 async function initializeChatApp() {
     console.log("Iniciando PilhIA...");
 
-    // Carrega os dados em paralelo para maior eficiência
     await Promise.all([
         loadPotentialsTable(),
         loadKnowledgeBase(),
         loadQuestions()
     ]);
     console.log("PilhIA pronta para interagir!");
-
-    // Carrega o histórico de chats do localStorage
     chats = JSON.parse(localStorage.getItem('pilhia-chats')) || {};
     currentChatId = localStorage.getItem('currentChatId');
-
-    // Inicializa o chat: se não há chat atual ou ele está vazio, cria um novo.
-    // Caso contrário, carrega o chat existente.
     const initialChat = chats[currentChatId];
     if (!initialChat || initialChat.messages.length === 0) {
-        createNewChat(); // Se não há chat ou está vazio, cria um novo com sugestões
+        createNewChat();
     } else {
-        loadChat(currentChatId); // Caso contrário, carrega o chat existente
+        loadChat(currentChatId);
     }
-    loadChatHistory(); // Sempre carrega a lista de chats na sidebar
-
-    // Configura os event listeners para os elementos da UI
+    loadChatHistory();
     const sendButton = document.getElementById('send-button');
     const userInput = document.getElementById('user-input');
     const newChatBtn = document.getElementById('new-chat-btn');
-    const confirmDeleteBtn = document.getElementById('confirm-delete-btn'); // Corrigido aqui
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
     const cancelDeleteBtn = document.getElementById('cancel-delete');
-    // A função toggleSidebar é chamada diretamente via onclick no HTML,
-    // então não precisamos de um event listener aqui para sidebarToggleButton.
-    // const sidebarToggleButton = document.getElementById('sidebarToggleButton');
-
     if (sendButton) sendButton.addEventListener('click', sendMessage);
     if (userInput) {
         userInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault(); // Impede quebra de linha no input ao pressionar Enter
+                event.preventDefault();
                 sendMessage();
             }
         });
-        userInput.focus(); // Coloca o foco no input ao iniciar
+        userInput.focus();
     }
     if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
     if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', () => deleteChat(chatToDelete));
@@ -885,12 +689,5 @@ async function initializeChatApp() {
             chatToDelete = null;
         });
     }
-    // Removido o listener para sidebarToggleButton, pois já é tratado via onclick no HTML
-    // if (sidebarToggleButton) {
-    //     sidebarToggleButton.addEventListener('click', toggleSidebar);
-    // }
 }
-
-// Adiciona um event listener para garantir que o DOM esteja completamente carregado
-// antes de inicializar toda a aplicação. Isso resolve problemas de "elemento não encontrado".
 document.addEventListener('DOMContentLoaded', initializeChatApp);
