@@ -1,0 +1,16 @@
+name: Deploy com Secret
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Exemplo de uso do secret (apenas build, não expor ao frontend!)
+      - name: Exemplo de uso do secret
+        run: echo "${{ secrets.OPENROUTER_API_KEY }}" | wc -c
