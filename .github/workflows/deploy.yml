@@ -22,38 +22,42 @@ jobs:
     runs-on: ubuntu-latest # Usa a última versão estável do Ubuntu como ambiente de execução
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4 # Ação para baixar o código do seu repositório
+      - name: Checkout code # Ação para baixar o código do seu repositório
+        uses: actions/checkout@v4
 
-      - name: Replace API Key Placeholder
+      - name: Replace API Key Placeholder # Substitui o placeholder no seu arquivo JavaScript
         # Certifique-se que o nome do segredo 'OPENROUTER_API_KEY_FOR_PAGES' é o mesmo do Passo 3
+        # O valor do segredo deve ser uma string JSON com todas as suas chaves (ex: '["chave1", "chave2"]')
         run: |
-          echo "Attempting to replace placeholder in js/main.js"
-          # Verifica se o arquivo existe no caminho js/main.js
-          if [ -f "js/main.js" ]; then
-            # Substitui o placeholder no arquivo localizado em js/main.js
-            sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY_FOR_PAGES }}|g" js/main.js
-            echo "Placeholder replacement done in js/main.js."
+          echo "Tentando substituir o placeholder no arquivo JavaScript principal..."
+          # ATENÇÃO: Substitua 'js/main.js' pelo caminho real do seu arquivo JavaScript principal.
+          # Ex: se seu arquivo principal for 'script.js' na raiz, use 'script.js'.
+          # Se for 'src/app.js', use 'src/app.js'.
+          FILE_PATH="js/main.js" # <-- AJUSTE ESTE CAMINHO SE SEU ARQUIVO JS ESTIVER EM OUTRO LUGAR
+
+          if [ -f "$FILE_PATH" ]; then
+            # Substitui o placeholder no arquivo.
+            # O 'sed -i' edita o arquivo no lugar.
+            sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY_FOR_PAGES }}|g" "$FILE_PATH"
+            echo "Substituição do placeholder concluída em $FILE_PATH."
           else
-            echo "Error: js/main.js not found!"
-            # Lista os arquivos na pasta js para ajudar na depuração
-            echo "Files in js/ directory:"
-            ls -la js/
-            # Lista os arquivos na raiz para ajudar na depuração
-            echo "Files in root directory:"
+            echo "Erro: O arquivo $FILE_PATH não foi encontrado!"
+            echo "Verifique o caminho no 'FILE_PATH' acima."
+            echo "Arquivos no diretório atual:"
             ls -la ./
-            exit 1
+            echo "Arquivos no diretório 'js/' (se existir):"
+            ls -la js/ || true # '|| true' evita erro se a pasta 'js/' não existir
+            exit 1 # Falha o workflow se o arquivo não for encontrado
           fi
-        # IMPORTANTE: O caminho "js/main.js" foi corrigido.
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5 # Ação para configurar o GitHub Pages
+      - name: Setup Pages # Ação para configurar o GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3 # Ação para empacotar os arquivos do site
+      - name: Upload artifact # Ação para empacotar os arquivos do site
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: '.' # Envia todo o conteúdo do repositório (ajuste se necessário)
+          path: '.' # Envia todo o conteúdo do repositório (ajuste se necessário, ex: 'dist/')
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages # Ação para fazer o deploy no GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 # Ação para fazer o deploy no GitHub Pages
+        uses: actions/deploy-pages@v4

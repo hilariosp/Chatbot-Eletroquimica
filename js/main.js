@@ -6,22 +6,31 @@ const chatState = {
     knowledgeBase: ""
 };
 
-const OPENROUTER_API_KEYS = [
-    "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",
-    "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",
-    "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",
-    "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",
-    "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",
-    "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",
-    "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",
-    "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",
-    "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",
-    "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"
-];
+// REMOVIDO: A lista de chaves de API não está mais aqui diretamente.
+// AGORA: As chaves serão lidas da variável de ambiente VITE_OPENROUTER_API_KEYS
+// injetada durante o build (por exemplo, pelo Vite e o GitHub Actions).
+
+let OPENROUTER_API_KEYS = [];
+try {
+    // import.meta.env.VITE_OPENROUTER_API_KEYS é como o Vite expõe variáveis de ambiente
+    // O '|| "[]"' garante que, se a variável não estiver definida, ele use um array vazio
+    const apiKeysString = import.meta.env.VITE_OPENROUTER_API_KEYS || "[]";
+    OPENROUTER_API_KEYS = JSON.parse(apiKeysString);
+
+    // Garante que o resultado seja realmente um array
+    if (!Array.isArray(OPENROUTER_API_KEYS)) {
+        OPENROUTER_API_KEYS = [];
+        console.error("VITE_OPENROUTER_API_KEYS não é um array JSON válido. Usando array vazio.");
+    }
+} catch (e) {
+    console.error("Erro ao parsear VITE_OPENROUTER_API_KEYS:", e);
+    OPENROUTER_API_KEYS = []; // Em caso de erro de parse, use um array vazio
+}
+
 
 function getRandomOpenRouterApiKey() {
     if (OPENROUTER_API_KEYS.length === 0) {
-        console.error("Erro: Nenhuma chave da API do OpenRouter configurada.");
+        console.error("Erro: Nenhuma chave da API do OpenRouter configurada ou carregada.");
         return null;
     }
     const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
