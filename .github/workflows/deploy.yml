@@ -1,4 +1,4 @@
-name: Deploy com Secret
+name: Build and Deploy Chatbot
 
 on:
   push:
@@ -8,9 +8,16 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      # Exemplo de uso do secret (apenas build, não expor ao frontend!)
-      - name: Exemplo de uso do secret
-        run: echo "${{ secrets.OPENROUTER_API_KEY }}" | wc -c
+      - name: Substituir placeholder pela chave do secret
+        run: |
+          sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY }}|g" js/chatbot.js
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
