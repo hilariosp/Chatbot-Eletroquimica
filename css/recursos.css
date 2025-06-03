@@ -5,7 +5,6 @@
     --text-light: #f8f9fa;
 }
 
-/* --- General Styles --- */
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bg-darker);
@@ -65,7 +64,6 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Navbar Padronizada --- */
 .navbar-custom {
     background-color: var(--bg-dark);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -105,7 +103,6 @@ h1, h2, h3, h4, h5, h6 {
     white-space: nowrap;
 }
 
-/* --- Hero Section --- */
 .hero-section {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1517420790938-164479e08398?auto=format&fit=crop&q=80&w=1920&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover;
     min-height: 50vh;
@@ -146,7 +143,6 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 auto 2rem auto;
 }
 
-/* --- Resources Section --- */
 section.py-5 {
     background-color: var(--bg-darker);
     padding-bottom: 4rem !important;
@@ -190,7 +186,6 @@ ul.list-unstyled li i {
     font-size: 1.2rem;
 }
 
-/* --- Footer --- */
 footer {
     background-color: var(--bg-dark);
     color: rgba(255, 255, 255, 0.7);
@@ -198,7 +193,6 @@ footer {
     margin-top: 2rem;
 }
 
-/* --- Responsive --- */
 @media (max-width: 991.98px) {
     .hero-section h1 {
         font-size: 2.5rem;
