@@ -1,5 +1,3 @@
-// js/chatbot.js
-
 // Chave da API será substituída pelo GitHub Actions no deploy
 let openRouterApiKey = "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";
 
@@ -14,22 +12,32 @@ const chatState = {
 
 // OPENROUTER_API_KEYS: array vazio, as chaves nunca ficam no frontend público!
 const OPENROUTER_API_KEYS = [];
-function getRandomOpenRouterApiKey() {
-    if (OPENROUTER_API_KEYS.length === 0) {
-        if (!openRouterApiKey || openRouterApiKey === "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") {
-            const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
-            if (userKey && userKey.trim() !== "") {
-                openRouterApiKey = userKey.trim();
-                return openRouterApiKey;
-            } else {
+
+// Função para obter a chave API (do secret, do array ou solicitando ao usuário)
+function getOpenRouterApiKey() {
+    // Se houver chaves no array, sorteie uma
+    if (OPENROUTER_API_KEYS.length > 0) {
+        const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
+        return OPENROUTER_API_KEYS[randomIndex];
+    }
+    // Se não há chave definida, peça ao usuário
+    if (!openRouterApiKey || openRouterApiKey === "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") {
+        let userKey = "";
+        // Loop até o usuário fornecer uma chave válida ou cancelar
+        while (!userKey) {
+            userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
+            if (userKey === null) {
                 alert("Chave API é necessária para usar a IA.");
                 return null;
             }
+            userKey = userKey.trim();
+            if (!userKey) {
+                alert("Chave API é necessária para usar a IA.");
+            }
         }
-        return openRouterApiKey;
+        openRouterApiKey = userKey;
     }
-    const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
-    return OPENROUTER_API_KEYS[randomIndex];
+    return openRouterApiKey;
 }
 
 // ==================== FUNÇÕES DE CARREGAMENTO ====================
@@ -215,7 +223,7 @@ Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroqu
 // ==================== CHAMADA À OPENROUTER ====================
 
 async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, model = "meta-llama/llama-3.2-3b-instruct:free", temperature = 0.5, max_tokens = 1500) {
-    const currentApiKey = getRandomOpenRouterApiKey();
+    const currentApiKey = getOpenRouterApiKey(); // <-- use a função corrigida
     if (!currentApiKey) {
         return "⚠️ Erro: Nenhuma chave da API configurada. A IA não está disponível.";
     }
@@ -268,8 +276,7 @@ async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, m
         console.error("Erro ao chamar a API do OpenRouter:", error);
         return `⚠️ Erro na comunicação com a IA: ${error.message}.`;
     }
-}
-
+}    
 // ==================== LÓGICA PRINCIPAL DO CHATBOT ====================
 
 async function processUserQuery(user_input) {
