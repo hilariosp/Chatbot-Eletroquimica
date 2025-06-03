@@ -1,21 +1,134 @@
-const chatState = {
-    chatId: null,
-    currentQuestionData: null,
-    questionsList: [],
-    potentialsTable: {},
-    knowledgeBase: ""
-};
+let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%"; // Declarada APENAS UMA VEZ aqui.
 
-let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%";
-
-function getRandomOpenRouterApiKey() {
-    if (!openRouterApiKey || openRouterApiKey === "%%OPENROUTER_API_KEY_PLACEHOLDER%%") {
-        console.error("Erro: Nenhuma chave da API do OpenRouter configurada. A IA não estará disponível.");
-        return null;
+// Função para verificar e solicitar chave API se necessário
+function ensureApiKey() {
+    if (!openRouterApiKey || openRouterApiKey.trim() === "") {
+        const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
+        if (userKey && userKey.trim() !== "") {
+            openRouterApiKey = userKey.trim();
+            return openRouterApiKey;
+        } else {
+            alert("Chave API é necessária para usar a IA.");
+            return null;
+        }
     }
     return openRouterApiKey;
 }
 
+async function callOpenRouterAPI(promptText, apiKey, model = "google/gemma-3-27b-it:free", maxTokens = 2500, temperature = 1.0) {
+    console.log("Chamando OpenRouter API com:", { model, maxTokens, temperature });
+    console.log("Prompt:", promptText.substring(0, 100) + "...");
+    
+    if (!apiKey) {
+        console.error("Chave API da OpenRouter não fornecida ou está vazia.");
+        return "Erro: Chave API não configurada.";
+    }
+
+    const headers = {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": window.location.origin,
+        "X-Title": "RenovaIA Chat/Quiz"
+    };
+
+    const body = JSON.stringify({
+        model: model,
+        messages: [{ role: "user", content: promptText }],
+        temperature: temperature,
+        max_tokens: maxTokens,
+    });
+
+    console.log("Request body:", body);
+
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: headers,
+            body: body
+        });
+
+        console.log("Response status:", response.status);
+        console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("OpenRouter API Error Response:", errorText);
+            
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                errorData = { error: { message: `Erro HTTP ${response.status}: ${response.statusText}` } };
+            }
+            
+            const errorMessage = errorData?.error?.message || `Erro na API: ${response.statusText}`;
+            return `Erro na API: ${errorMessage}`;
+        }
+
+        const responseText = await response.text();
+        console.log("Response text:", responseText);
+        
+        const data = JSON.parse(responseText);
+        console.log("Parsed response:", data);
+        
+        const content = data.choices?.[0]?.message?.content;
+        if (!content) {
+            console.error("Resposta da API não contém conteúdo:", data);
+            return "Não obtive uma resposta válida da IA.";
+        }
+        
+        return content;
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return `Erro ao conectar com a API OpenRouter: ${error.message}`;
+    }
+}
+
+/**
+ * @file chatbot.js
+ * @description Este arquivo contém toda a lógica do frontend para o chatbot PilhIA,
+ * incluindo gerenciamento de estado, carregamento de dados (tabela de potenciais,
+ * base de conhecimento), interação com a API do OpenRouter, processamento de consultas
+ * do usuário, e toda a manipulação da interface do usuário e persistência de dados
+ * do chat via localStorage.
+ *
+ * As chaves da API do OpenRouter são carregadas de variáveis de ambiente (VITE_OPENROUTER_API_KEYS)
+ * injetadas pelo Vite durante o processo de build para maior segurança.
+ */
+
+// Objeto global para manter o estado do chat da IA.
+const chatState = {
+    chatId: null, // ID da sessão de chat atual
+    currentQuestionData: null, // Adicionado de volta para compatibilidade, mesmo sem quiz ativo
+    questionsList: [], // Adicionado de volta para armazenar as questões
+    potentialsTable: {}, // Tabela de potenciais padrão de eletrodos carregada
+    knowledgeBase: "" // Conteúdo da base de conhecimento para a IA
+};
+
+/**
+ * Função para verificar e solicitar chave API se necessário (agora utiliza a variável global)
+ */
+function ensureApiKey() {
+    // Esta função foi mantida e utiliza a 'openRouterApiKey' globalmente declarada no topo do arquivo.
+    if (!openRouterApiKey || openRouterApiKey.trim() === "") {
+        const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
+        if (userKey && userKey.trim() !== "") {
+            openRouterApiKey = userKey.trim();
+            return openRouterApiKey;
+        } else {
+            alert("Chave API é necessária para usar a IA.");
+            return null;
+        }
+    }
+    return openRouterApiKey;
+}
+
+/**
+ * @async
+ * @function loadQuestions
+ * @description Carrega as questões de eletroquímica de um arquivo JSON local.
+ * Formata as questões para uso no chat.
+ */
 async function loadQuestions() {
     try {
         const response = await fetch('./data/questoes/eletroquimica.json');
@@ -26,12 +139,14 @@ async function loadQuestions() {
 
         let formattedQuestions = [];
         if (Array.isArray(data)) {
+            // Limita a 10 questões para evitar sobrecarga, se houver muitas.
             data.slice(0, 10).forEach(item => {
                 const questionText = item.questao;
                 const alternatives = item.alternativas;
                 const correctAnswer = item.resposta_correta;
                 if (questionText && alternatives && correctAnswer) {
                     let formattedAnswer = `${questionText}\n`;
+                    // Limita a 4 alternativas para o formato de exibição.
                     Object.entries(alternatives).slice(0, 4).forEach(([letter, option]) => {
                         formattedAnswer += `(${letter.toUpperCase()}) ${option}\n`;
                     });
@@ -43,6 +158,7 @@ async function loadQuestions() {
                 }
             });
         } else if (typeof data === 'object' && data !== null) {
+            // Caso o JSON contenha apenas uma questão (objeto único)
             const questionText = data.questao;
             const alternatives = data.alternativas;
             const correctAnswer = data.resposta_correta;
@@ -63,10 +179,15 @@ async function loadQuestions() {
         console.log(`✅ ${chatState.questionsList.length} questões carregadas.`);
     } catch (error) {
         console.error("⚠️ Erro ao carregar questões:", error);
-        chatState.questionsList = [];
+        chatState.questionsList = []; // Garante que a lista esteja vazia em caso de erro.
     }
 }
 
+/**
+ * @async
+ * @function loadPotentialsTable
+ * @description Carrega a tabela de potenciais padrão de um arquivo JSON local.
+ */
 async function loadPotentialsTable() {
     try {
         const response = await fetch('./data/tabelas/tabela_potenciais.json');
@@ -87,10 +208,16 @@ async function loadPotentialsTable() {
         console.log("✅ Tabela de potenciais carregada.");
     } catch (error) {
         console.error("⚠️ Erro ao carregar tabela de potenciais:", error);
-        chatState.potentialsTable = {};
+        chatState.potentialsTable = {}; // Garante que a tabela esteja vazia em caso de erro.
     }
 }
 
+/**
+ * @async
+ * @function loadKnowledgeBase
+ * @description Carrega o conteúdo da base de conhecimento de eletroquímica de um arquivo JSON local.
+ * Limita o tamanho do conteúdo para evitar exceder o limite de tokens da API.
+ */
 async function loadKnowledgeBase() {
     let content = "";
     const knowledgeBaseFile = './data/basededados/eletroquimica.json';
@@ -106,6 +233,7 @@ async function loadKnowledgeBase() {
 
         let fileText = "";
         if (Array.isArray(jsonData)) {
+            // Se for um array de objetos, formata cada item.
             fileText = jsonData.map(item => {
                 let formattedItem = "";
                 if (item.topico) formattedItem += `Tópico: ${item.topico}\n`;
@@ -116,18 +244,27 @@ async function loadKnowledgeBase() {
                 return formattedItem;
             }).join("\n---\n");
         } else {
+            // Se for um objeto único, stringify.
             fileText = JSON.stringify(jsonData, null, 2);
         }
 
+        // Adiciona o conteúdo da base de dados, limitando o tamanho.
         content += `\n--- Conteúdo de ${knowledgeBaseFile} ---\n${fileText.substring(0, 7500)}\n`;
-        chatState.knowledgeBase = content.substring(0, 8000);
+        chatState.knowledgeBase = content.substring(0, 8000); // Limite final para a base de conhecimento.
         console.log(`📖 Base de dados carregada (${chatState.knowledgeBase.length} caracteres).`);
     } catch (error) {
         console.error(`⚠️ Erro ao ler ou processar a base de dados JSON '${knowledgeBaseFile}':`, error);
-        chatState.knowledgeBase = "";
+        chatState.knowledgeBase = ""; // Garante que a base de conhecimento esteja vazia em caso de erro.
     }
 }
 
+/**
+ * @function calcularVoltagemPilha
+ * @description Calcula a voltagem de uma pilha dados dois eletrodos,
+ * usando a tabela de potenciais carregada.
+ * @param {string} eletrodosStr Uma string contendo os dois eletrodos separados por 'e' (ex: 'cobre e zinco').
+ * @returns {string} A voltagem calculada ou uma mensagem de erro.
+ */
 function calcularVoltagemPilha(eletrodosStr) {
     const eletrodos = eletrodosStr.split(' e ').map(e => e.trim().toLowerCase()).filter(e => e);
 
@@ -139,556 +276,245 @@ function calcularVoltagemPilha(eletrodosStr) {
     for (const eletrodo of eletrodos) {
         let foundMatch = false;
         for (const keyMetal in chatState.potentialsTable) {
+            // Procura por correspondência parcial no nome do metal na tabela
             if (keyMetal.includes(eletrodo)) {
                 potentials[eletrodo] = chatState.potentialsTable[keyMetal];
                 foundMatch = true;
-                break;
+                break; // Encontrou, pode sair do loop interno
             }
         }
         if (!foundMatch) {
-            return `Não encontrei o potencial padrão para '${eletrodo}'. Verifique a grafia ou se está na tabela.`;
+            return `Não foi possível encontrar o potencial para o eletrodo: ${eletrodo}. Por favor, verifique se ele está na lista de potenciais conhecidos.`;
         }
     }
 
-    if (Object.keys(potentials).length < 2) {
-        return "Não foi possível encontrar potenciais para ambos os eletrodos. Verifique a grafia.";
+    const [eletrodo1, eletrodo2] = eletrodos;
+    const potencial1 = potentials[eletrodo1];
+    const potencial2 = potentials[eletrodo2];
+
+    if (potencial1 === undefined || potencial2 === undefined) {
+        return "Não foi possível encontrar os potenciais para um ou ambos os eletrodos especificados.";
     }
 
-    const catodoName = Object.keys(potentials).reduce((a, b) => potentials[a] > potentials[b] ? a : b);
-    const anodoName = Object.keys(potentials).reduce((a, b) => potentials[a] < potentials[b] ? a : b);
-    const voltagem = potentials[catodoName] - potentials[anodoName];
-
-    return `A voltagem da pilha com ${catodoName.charAt(0).toUpperCase() + catodoName.slice(1)} e ${anodoName.charAt(0).toUpperCase() + anodoName.slice(1)} é de ${voltagem.toFixed(2)} V.`;
+    const E_celula = Math.abs(potencial1 - potencial2);
+    return `A voltagem da pilha entre ${eletrodo1} e ${eletrodo2} é de aproximadamente ${E_celula.toFixed(3)} V.`;
 }
 
-function generateQuestion() {
-    if (chatState.questionsList.length === 0) {
-        return "Não há mais questões disponíveis.";
-    }
-    const q = chatState.questionsList[Math.floor(Math.random() * chatState.questionsList.length)];
-    chatState.currentQuestionData = q;
-    return q.pergunta;
-}
+// ============== Funções relacionadas à UI do Chat e Lógica de Processamento ==============
 
-async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama-3.2-3b-instruct:free", temperature = 0.5, max_tokens = 1500) {
-    const currentApiKey = getRandomOpenRouterApiKey();
-    if (!currentApiKey) {
-        return "⚠️ Erro: Nenhuma chave da API configurada. A IA não está disponível.";
-    }
-
-    try {
-        const messages = [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt }
-        ];
-
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + currentApiKey,
-                "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin,
-                "X-Title": "PilhIA Frontend"
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: messages,
-                temperature: temperature,
-                max_tokens: max_tokens
-            })
-        });
-
-        if (!response.ok) {
-            let errorDetails = "Erro desconhecido da API.";
-            try {
-                const errorText = await response.text();
-                try {
-                    const errorData = JSON.parse(errorText);
-                    console.error("Detalhes do erro da API OpenRouter (raw JSON):", errorData);
-
-                    if (errorData.message) {
-                        errorDetails = errorData.message;
-                    } else if (errorData.error && typeof errorData.error === 'string') {
-                        errorDetails = errorData.error;
-                    } else if (errorData.error && errorData.error.message) {
-                        errorDetails = errorData.error.message;
-                    } else if (errorData.detail) {
-                        errorDetails = errorData.detail;
-                    } else {
-                        errorDetails = JSON.stringify(errorData, null, 2);
-                    }
-                } catch (jsonParseError) {
-                    errorDetails = `Resposta da API não é JSON válido. Texto: ${errorText.substring(0, 500)}... (Erro de parse: ${jsonParseError.message})`;
-                }
-            } catch (readError) {
-                errorDetails = `Erro ao ler resposta da API: ${readError.message}. Status HTTP: ${response.status} ${response.statusText}`;
-            }
-            throw new Error(`Erro na API OpenRouter (Status: ${response.status}): ${errorDetails}`);
-        }
-
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "Sem resposta da IA.";
-
-    } catch (error) {
-        console.error("Erro ao chamar a API do OpenRouter:", error);
-        const displayError = error instanceof Error ? error.message : String(error);
-        return `⚠️ Erro na comunicação com a IA: ${displayError}.`;
-    }
-}
-
+/**
+ * @const {string} SYSTEM_PROMPT_CHATBOT
+ * @description Define o prompt base para a IA, estabelecendo seu papel e regras.
+ * IMPORTANTE: Mantenha este prompt conciso para economizar tokens.
+ * Contextos maiores devem vir de `chatState.knowledgeBase` quando relevante.
+ */
 const SYSTEM_PROMPT_CHATBOT = `
-Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroquímica, baterias, eletrólise e pilha de Daniell.
-
-1. COMPORTAMENTO:
-- Mantenha respostas claras, concisas e diretamente relacionadas à eletroquímica.
-- **FORNEÇA RESPOSTAS APENAS COM BASE NA DOCUMENTAÇÃO DE REFERÊNCIA EXPLÍCITAMENTE FORNECIDA NO CONTEXTO. NÃO BUSQUE INFORMAÇÕES EXTERNAS.**
-- **Se a pergunta for para 'entender' ou 'explicar' um conceito presente no contexto (ex: 'Quero entender eletroquímica', 'Explique a eletrólise'), você DEVE usar o conteúdo da base de dados para fornecer uma explicação clara e concisa.**
-- **Se o usuário solicitar uma explicação usando analogias (ex: 'Explique eletroquímica fazendo analogias com um jogo'), você PODE usar analogias, desde que elas sirvam para CLARIFICAR os conceitos de eletroquímica presentes na sua base de dados. A analogia deve ser uma FERRAMENTA de ensino, não uma forma de introduzir informações externas ou fora do escopo.**
-- Se o conceito não estiver explicitamente no contexto, ou a pergunta for muito vaga ou fora do tópico de eletroquímica (baterias, eletrólise, pilha de Daniell), responda APENAS E EXCLUSIVAMENTE: "Não sei responder isso".
-- Se a pergunta for incompleta (ex: 'o que é a'), responda: "Não sei responder isso".
-- Se for perguntado algo fora de eletroquímica (baterias, eletrólise, pilha de Daniell), responda que não pode responder por estar fora do assunto.
-- Se pedir questões sobre eletroquímica, você deve pegar elas diretamente da sua lista de questões (que está no seu contexto), e soltar apenas uma por vez.
-- Ao explicar a resposta de uma questão, forneça APENAS a justificativa conceitual e quimicamente ACURADA para a alternativa CORRETA. NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão. Sua explicação deve ser uma justificativa direta, concisa e precisa, focando nos princípios da eletroquímica.
-
-2. FORMATO:
-- Use parágrafos curtos e marcadores quando apropriado.
-- Não faça uso de formatações complexas como LaTeX ou fórmulas matemáticas embutidas no texto; use texto simples.
-- Para listas longas, sugira uma abordagem passo a passo.
-- Para as questões pedidas, você deve copiar ela totalmente, menos a resposta correta (a não ser que o usuário peça questões com resposta correta).
-
-3. RESTRIÇÕES ABSOLUTAS:
-- NUNCA INVENTE INFORMAÇÕES.
-- NUNCA BUSQUE INFORMAÇÕES NA INTERNET.
-- NUNCA RESPONDA A PERGUNTAS FORA DO ESCOPO DE ELETROQUÍMICA (baterias, eletrólise, pilha de Daniell).
-- Não responda perguntas sobre temas sensíveis ou ilegais.
-- Não gere conteúdo ofensivo ou discriminatório.
-
-4. INTERAÇÃO:
-- Peça esclarecimentos se a pergunta for ambígua.
-- Para perguntas complexas, sugira dividi-las em partes menores.
-- Confirme se respondeu adequadamente à dúvida.
+Você é a PilhIA, uma inteligência artificial educativa especializada em eletroquímica.
+Seu objetivo é ajudar, ensinar e auxiliar usuários com suas dúvidas e perguntas sobre eletroquímica.
+Seja direto, objetivo e informativo. Responda em português do Brasil.
+Você pode calcular voltagens de pilhas usando dados fornecidos.
+Se a pergunta não for sobre eletroquímica ou cálculo de pilhas, você deve responder que não tem conhecimento sobre o assunto.
 `;
 
+
+/**
+ * @async
+ * @function processUserQuery
+ * @description Processa a entrada do usuário, envia para a IA e exibe a resposta.
+ * @param {string} user_input A mensagem digitada pelo usuário.
+ */
 async function processUserQuery(user_input) {
-    const user_lower = user_input.toLowerCase();
-    let response = "";
+    if (!user_input.trim()) return;
 
-    if (user_lower.includes("calcular a voltagem de uma pilha de")) {
-        const eletrodosStr = user_lower.split("de uma pilha de")[1].trim();
-        response = calcularVoltagemPilha(eletrodosStr);
-        chatState.currentQuestionData = null;
-    } else if (chatState.currentQuestionData) {
-        const questionData = chatState.currentQuestionData;
-        const correct_answer_letter = questionData.resposta_correta.toLowerCase();
-
-        if (user_lower === "sim") {
-            response = generateQuestion();
-            if (response.includes("Não há mais questões disponíveis.")) {
-                chatState.currentQuestionData = null;
-            }
-        } else if (user_lower === "não") {
-            response = "Ótimo. Deseja mais alguma coisa?";
-            chatState.currentQuestionData = null;
-        } else if (['a', 'b', 'c', 'd', 'e'].includes(user_lower)) {
-            const explanationPrompt = (
-                `Para a questão: '${questionData.pergunta}'\n`
-                + `A alternativa correta é '(${correct_answer_letter.toUpperCase()})'. `
-                + `Forneça a justificativa conceitual e quimicamente ACURADA para esta alternativa, `
-                + `focando nos princípios da eletroquímica. `
-                + `Seja conciso e preciso. **NÃO re-afirme a letra da alternativa correta, `
-                + `NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**`
-            );
-            const explanation = await callOpenRouterAPI(explanationPrompt, SYSTEM_PROMPT_CHATBOT);
-
-            const isCorrect = (user_lower === correct_answer_letter);
-            if (isCorrect) {
-                response = `Você acertou! A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
-            } else {
-                response = `Você errou. A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
-            }
-        } else {
-            chatState.currentQuestionData = null;
-            const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
-            response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
-        }
-    } else if (user_lower.includes("gerar questões") || user_lower.includes("questões enem") || user_lower.includes("questão")) {
-        response = generateQuestion();
-    } else {
-        const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
-        response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
-    }
-
-    return response;
-}
-
-function toggleSidebar() {
-    const sidebarContent = document.getElementById('sidebarContent');
-    if (sidebarContent) {
-        sidebarContent.classList.toggle('show');
-    }
-}
-
-function addSuggestionsToChat() {
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    if (!chatContainer || !userInput) {
-        console.warn("Elementos 'chat-container' ou 'user-input' não encontrados para adicionar sugestões.");
-        return;
-    }
-
-    const suggestionsDiv = document.createElement('div');
-    suggestionsDiv.className = 'suggestions mt-5';
-    suggestionsDiv.innerHTML = `
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 justify-content-center">
-            <div class="col-md-4">
-                <div class="card suggestion-card" data-suggestion="Gerar questões sobre eletroquímica">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Questões ENEM</h6>
-                        <p class="card-text small">Gera questões no estilo ENEM e vestibular sobre eletroquímica</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card suggestion-card" data-suggestion="Quero ajuda para entender [problema]">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Resolver Dúvidas</h6>
-                        <p class="card-text small">Tire dúvidas sobre determinado assunto do campo de eletroquímica.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card suggestion-card" data-suggestion="Calcular a voltagem de uma pilha de [eletrodo 1] e [eletrodo 2]">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Pilha Virtual</h6>
-                        <p class="card-text small">Monte uma pilha virtual e calcule a voltagem.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card suggestion-card" data-suggestion="Explicar eletroquímica fazendo analogias com [insira]">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Analogias</h6>
-                        <p class="card-text small">Explique eletroquímica fazendo analogias com determinado tema ou assunto</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const existingSuggestions = chatContainer.querySelector('.suggestions');
-    if (existingSuggestions) {
-        chatContainer.removeChild(existingSuggestions);
-    }
-    chatContainer.appendChild(suggestionsDiv);
-
-    const suggestionCards = chatContainer.querySelectorAll('.suggestion-card');
-    suggestionCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const suggestionText = card.getAttribute('data-suggestion');
-            userInput.value = suggestionText;
-            userInput.focus();
-        });
-    });
-}
-
-function removeSuggestionsFromChat() {
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) return;
-    const suggestionsDiv = chatContainer.querySelector('.suggestions');
-    if (suggestionsDiv) {
-        chatContainer.removeChild(suggestionsDiv);
-    }
-}
-
-let chats = {};
-let currentChatId = null;
-let chatToDelete = null;
-
-function saveChats() {
-    localStorage.setItem('pilhia-chats', JSON.stringify(chats));
-}
-
-function loadChatHistory() {
-    const chatHistoryContainer = document.getElementById('chat-history-container');
-    if (!chatHistoryContainer) {
-        console.warn("Elemento 'chat-history-container' não encontrado.");
-        return;
-    }
-    chatHistoryContainer.innerHTML = '';
-
-    const sortedChats = Object.values(chats).sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-    );
-
-    sortedChats.forEach(chat => {
-        const chatElement = document.createElement('div');
-        chatElement.className = 'chat-history';
-        chatElement.dataset.chatId = chat.id;
-
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'chat-history-title';
-        titleSpan.textContent = chat.title;
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-chat-btn';
-        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showDeleteConfirmation(chat.id);
-        });
-
-        chatElement.appendChild(titleSpan);
-        chatElement.appendChild(deleteBtn);
-
-        chatElement.addEventListener('click', () => {
-            loadChat(chat.id);
-        });
-
-        chatHistoryContainer.appendChild(chatElement);
-    });
-}
-
-function loadChat(chatId) {
-    currentChatId = chatId;
-    localStorage.setItem('currentChatId', currentChatId);
-    chatState.chatId = currentChatId;
-
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) {
-        console.error("Elemento 'chat-container' não encontrado.");
-        return;
-    }
-    chatContainer.innerHTML = '';
-
-    removeSuggestionsFromChat();
-
-    const chat = chats[chatId];
-    if (!chat || chat.messages.length === 0) {
-        chatContainer.innerHTML = `
-            <div class="text-center mt-5 pt-5">
-                <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
-            </div>`;
-        addSuggestionsToChat();
-    } else {
-        chat.messages.forEach(msg => {
-            addMessage(msg.content, msg.isUser, false);
-        });
-    }
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
-
-function createNewChat() {
-    currentChatId = 'temp-' + Date.now().toString();
-    localStorage.setItem('currentChatId', currentChatId);
-    chatState.chatId = currentChatId;
-
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    if (!chatContainer || !userInput) {
-        console.error("Elementos 'chat-container' ou 'user-input' não encontrados.");
-        return;
-    }
-
-    chatContainer.innerHTML = `
-        <div class="text-center mt-5 pt-5">
-            <h2 class="text-white display-4">Como posso te ajudar<span class="text-danger">?</span></h2>
-        </div>`;
-    addSuggestionsToChat();
-    userInput.focus();
-}
-
-function addMessage(content, isUser = false, saveToHistory = true) {
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) {
-        console.error("Elemento 'chat-container' não encontrado para adicionar mensagem.");
-        return;
-    }
-
-    const timestamp = new Date();
-    const hours = timestamp.getHours().toString().padStart(2, '0');
-    const minutes = timestamp.getMinutes().toString().padStart(2, '0');
-    const timeString = `${hours}:${minutes}`;
-
-    if (isUser && currentChatId.startsWith('temp-')) {
-        const newChatId = Date.now().toString();
-        chats[newChatId] = {
-            id: newChatId,
-            title: content.length > 30 ? content.substring(0, 30) + '...' : content,
-            messages: [{
-                content,
-                isUser: true,
-                timestamp: timestamp.toISOString()
-            }],
-            createdAt: timestamp.toISOString()
-        };
-        currentChatId = newChatId;
-        localStorage.setItem('currentChatId', currentChatId);
-        chatState.chatId = currentChatId;
-        saveChats();
-        loadChatHistory();
-    } else if (saveToHistory && chats[currentChatId]) {
-        const chat = chats[currentChatId];
-        chat.messages.push({
-            content,
-            isUser,
-            timestamp: timestamp.toISOString()
-        });
-        if (isUser && chat.messages.length === 1 && !chat.title) {
-            chat.title = content.length > 30 ? content.substring(0, 30) + '...' : content;
-        }
-        saveChats();
-        loadChatHistory();
-    }
-
-    const placeholder = chatContainer.querySelector('.text-center');
-    if (placeholder) {
-        chatContainer.removeChild(placeholder);
-    }
-    removeSuggestionsFromChat();
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message p-3 ${isUser ? 'user-message' : 'bot-message'}`;
-
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    timeSpan.textContent = timeString;
-    messageDiv.appendChild(timeSpan);
-
-    const lines = content.split('\n');
-    lines.forEach(line => {
-        const paragraph = document.createElement('p');
-        paragraph.innerHTML = line;
-        messageDiv.appendChild(paragraph);
-    });
-
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
-
-function showTyping() {
-    const chatContainer = document.getElementById('chat-container');
-    if (!chatContainer) return;
-
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message p-3 bot-message typing-indicator';
-    typingDiv.innerHTML = '<span></span><span></span><span></span>';
-    typingDiv.id = 'typing-indicator';
-    chatContainer.appendChild(typingDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
-
-async function sendMessage() {
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
-    if (!userInput || !sendButton) {
-        console.error("Elementos 'user-input' ou 'send-button' não encontrados.");
-        return;
-    }
-
-    const message = userInput.value.trim();
-    if (!message) return;
-
-    userInput.disabled = true;
-    userInput.value = 'Enviando...';
-    sendButton.disabled = true;
-
-    addMessage(message, true);
-    userInput.style.height = 'auto';
-
-    showTyping();
+    // Garante que o input do usuário está limpo antes de adicionar ao chat
+    const cleanedInput = user_input.trim();
+    displayMessage(cleanedInput, 'user');
+    document.getElementById('user-input').value = ''; // Limpa o campo de entrada
 
     try {
-        const aiResponse = await processUserQuery(message);
+        const apiKey = ensureApiKey();
+        if (!apiKey) {
+            displayMessage("Por favor, insira sua chave API para usar a IA.", 'bot');
+            return;
+        }
 
-        document.getElementById('typing-indicator')?.remove();
+        // Exibe um indicador de "digitando"
+        const typingIndicator = displayMessage(' digitando...', 'bot typing');
 
-        userInput.disabled = false;
-        userInput.value = '';
-        userInput.focus();
+        let ai_response;
 
-        sendButton.disabled = false;
-        sendButton.innerHTML = '<i class="bi bi-arrow-up"></i>';
+        // Tentar identificar e processar comandos internos primeiro
+        if (cleanedInput.toLowerCase().startsWith('calcular pilha ')) {
+            const eletrodosStr = cleanedInput.toLowerCase().replace('calcular pilha ', '');
+            ai_response = calcularVoltagemPilha(eletrodosStr);
+        } else {
+            // Se não for um comando interno de cálculo de pilha, o chatbot informa o que pode fazer.
+            ai_response = "Desculpe, no momento só consigo calcular voltagens de pilhas. Por favor, tente um comando como 'calcular pilha cobre e zinco'.";
+        }
 
-        addMessage(aiResponse, false);
+        // Remove o indicador de "digitando"
+        typingIndicator.remove();
+
+        // Exibe a resposta da IA ou a mensagem de erro/informação
+        if (ai_response) {
+            displayMessage(ai_response, 'bot');
+        }
 
     } catch (error) {
-        console.error('Erro ao enviar mensagem:', error);
-        const typing = document.getElementById('typing-indicator');
-        if (typing) typing.remove();
-
-        userInput.disabled = false;
-        userInput.value = message;
-        userInput.focus();
-
-        sendButton.disabled = false;
-        sendButton.innerHTML = '<i class="bi bi-arrow-up"></i>';
-
-        addMessage('⚠️ Não foi possível conectar ao servidor ou processar a resposta.', false);
+        console.error("Erro ao processar a consulta do usuário:", error);
+        // Remove o indicador de "digitando" em caso de erro
+        const typingIndicator = document.querySelector('.message.bot.typing');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+        displayMessage("Ocorreu um erro ao tentar obter a resposta. Por favor, tente novamente.", 'bot');
     }
 }
 
-function showDeleteConfirmation(chatId) {
-    const confirmDeleteModal = document.getElementById('confirm-delete');
-    if (confirmDeleteModal) {
-        chatToDelete = chatId;
-        confirmDeleteModal.style.display = 'flex';
-    }
+/**
+ * @function displayMessage
+ * @description Adiciona uma nova mensagem ao chat.
+ * @param {string} message O texto da mensagem.
+ * @param {string} sender O remetente da mensagem ('user', 'bot', 'bot typing').
+ * @returns {HTMLElement} O elemento da mensagem criado.
+ */
+function displayMessage(message, sender) {
+    const chatBox = document.getElementById('chat-box');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', sender);
+    messageElement.innerHTML = sender === 'bot typing' ? message : formatMessage(message); // Usa innerHTML para permitir formatação Markdown
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight; // Rolagem automática
+    return messageElement;
 }
 
-function deleteChat(chatIdToDelete) {
-    if (currentChatId === chatIdToDelete) {
-        createNewChat();
-    }
-    delete chats[chatIdToDelete];
-    saveChats();
+/**
+ * @function formatMessage
+ * @description Formata o texto da mensagem para exibir Markdown como HTML.
+ * @param {string} text O texto bruto da mensagem.
+ * @returns {string} O texto formatado em HTML.
+ */
+function formatMessage(text) {
+    // Negrito
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Itálico
+    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Links (formato simples: [texto](url))
+    text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    // Quebras de linha
+    text = text.replace(/\n/g, '<br>');
+    return text;
+}
+
+/**
+ * @function addSuggestionsToChat
+ * @description Adiciona botões de sugestão ao chat para guiar o usuário.
+ * @param {Array<string>} suggestions Um array de strings com as sugestões.
+ */
+function addSuggestionsToChat(suggestions) {
+    const chatBox = document.getElementById('chat-box');
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.classList.add('suggestions-container');
+
+    suggestions.forEach(suggestionText => {
+        const button = document.createElement('button');
+        button.classList.add('suggestion-button');
+        button.textContent = suggestionText;
+        button.onclick = () => {
+            document.getElementById('user-input').value = suggestionText;
+            processUserQuery(suggestionText);
+            removeSuggestionsFromChat(); // Remove as sugestões após uma ser clicada
+        };
+        suggestionsContainer.appendChild(button);
+    });
+    chatBox.appendChild(suggestionsContainer);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+/**
+ * @function removeSuggestionsFromChat
+ * @description Remove todos os botões de sugestão do chat.
+ */
+function removeSuggestionsFromChat() {
+    const chatBox = document.getElementById('chat-box');
+    const suggestionContainers = chatBox.querySelectorAll('.suggestions-container');
+    suggestionContainers.forEach(container => container.remove());
+}
+
+/**
+ * @function loadChatHistory
+ * @description Carrega o histórico de mensagens do localStorage e as exibe.
+ */
+function loadChatHistory() {
+    const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    chatHistory.forEach(msg => {
+        displayMessage(msg.text, msg.sender);
+    });
+}
+
+/**
+ * @function saveChatHistory
+ * @description Salva o histórico atual de mensagens no localStorage.
+ */
+function saveChatHistory() {
+    const chatBox = document.getElementById('chat-box');
+    const messages = Array.from(chatBox.children).map(msgElement => {
+        // Ignora mensagens de "digitando" e sugestões ao salvar
+        if (!msgElement.classList.contains('typing') && !msgElement.classList.contains('suggestions-container')) {
+            return {
+                text: msgElement.innerText, // Use innerText para obter o texto visível
+                sender: msgElement.classList.contains('user') ? 'user' : 'bot'
+            };
+        }
+        return null;
+    }).filter(msg => msg !== null); // Filtra os nulos
+
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+}
+
+/**
+ * @function clearChatHistory
+ * @description Limpa o histórico de mensagens do localStorage e da interface.
+ */
+function clearChatHistory() {
+    localStorage.removeItem('chatHistory');
+    document.getElementById('chat-box').innerHTML = '';
+    displayMessage("Histórico do chat limpo. Bem-vindo!", 'bot');
+}
+
+// ============== Event Listeners e Inicialização ==============
+
+// Inicialização do chat quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', async () => {
+    // Carrega a chave API no início. Se não existir, pedirá ao usuário.
+    ensureApiKey(); 
+    
+    // Carrega dados para a tabela de potenciais e base de conhecimento
+    await loadPotentialsTable();
+    await loadKnowledgeBase();
+    await loadQuestions(); // Adicionado de volta
+
+    // Carrega o histórico de chat anterior
     loadChatHistory();
-    const confirmDeleteModal = document.getElementById('confirm-delete');
-    if (confirmDeleteModal) confirmDeleteModal.style.display = 'none';
-    chatToDelete = null;
-}
 
-async function initializeChatApp() {
-    console.log("Iniciando PilhIA...");
+    // Adiciona o evento para o botão de enviar mensagem
+    document.getElementById('send-button').addEventListener('click', () => {
+        const userInput = document.getElementById('user-input').value;
+        processUserQuery(userInput);
+        saveChatHistory(); // Salva o chat após cada interação
+    });
 
-    await Promise.all([
-        loadPotentialsTable(),
-        loadKnowledgeBase(),
-        loadQuestions()
-    ]);
-    console.log("PilhIA pronta para interagir!");
-    chats = JSON.parse(localStorage.getItem('pilhia-chats')) || {};
-    currentChatId = localStorage.getItem('currentChatId');
-    const initialChat = chats[currentChatId];
-    if (!initialChat || initialChat.messages.length === 0) {
-        createNewChat();
-    } else {
-        loadChat(currentChatId);
-    }
-    loadChatHistory();
-    const sendButton = document.getElementById('send-button');
-    const userInput = document.getElementById('user-input');
-    const newChatBtn = document.getElementById('new-chat-btn');
-    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-    const cancelDeleteBtn = document.getElementById('cancel-delete');
-    if (sendButton) sendButton.addEventListener('click', sendMessage);
-    if (userInput) {
-        userInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-        userInput.focus();
-    }
-    if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
-    if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', () => deleteChat(chatToDelete));
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.addEventListener('click', () => {
-            const confirmDeleteModal = document.getElementById('confirm-delete');
-            if (confirmDeleteModal) confirmDeleteModal.style.display = 'none';
-            chatToDelete = null;
-        });
-    }
-}
+    // Adiciona o evento para a tecla Enter no campo de input
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('send-button').click();
+        }
+    });
 
-document.addEventListener('DOMContentLoaded', initializeChatApp);
+    // Adiciona o evento para o botão de limpar histórico
+    document.getElementById('clear-chat-button').addEventListener('click', clearChatHistory);
+
+    // Mensagem de boas-vindas inicial e sugestões
+    displayMessage("Olá! Sou a PilhIA, sua assistente educativa em eletroquímica. Posso te ajudar a **calcular voltagens de pilhas** (ex: 'calcular pilha cobre e zinco').", 'bot');
+    addSuggestionsToChat(['calcular pilha cobre e zinco']);
+});
