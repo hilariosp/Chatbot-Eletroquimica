@@ -1,42 +1,66 @@
+/**
+ * @file js/main.js
+ * @description Este arquivo contém a lógica principal do chatbot PilhIA,
+ * incluindo o gerenciamento do estado do chat, carregamento de dados,
+ * interação com a API do OpenRouter e processamento de consultas do usuário.
+ * As chaves da API do OpenRouter são carregadas de variáveis de ambiente
+ * para maior segurança.
+ */
+
+// Objeto global para manter o estado do chat.
 const chatState = {
-    chatId: null,
-    currentQuestionData: null,
-    questionsList: [],
-    potentialsTable: {},
-    knowledgeBase: ""
+    chatId: null, // ID da sessão de chat, se aplicável
+    currentQuestionData: null, // Armazena os dados da questão atual em jogo
+    questionsList: [], // Lista de questões carregadas
+    potentialsTable: {}, // Tabela de potenciais padrão carregada
+    knowledgeBase: "" // Base de conhecimento carregada para a IA
 };
 
-// REMOVIDO: A lista de chaves de API não está mais aqui diretamente.
-// AGORA: As chaves serão lidas da variável de ambiente VITE_OPENROUTER_API_KEYS
-// injetada durante o build (por exemplo, pelo Vite e o GitHub Actions).
-
+/**
+ * @type {string[]} OPENROUTER_API_KEYS
+ * @description Array para armazenar as chaves da API do OpenRouter.
+ * Estas chaves são carregadas de variáveis de ambiente (VITE_OPENROUTER_API_KEYS)
+ * durante o processo de build para segurança.
+ */
 let OPENROUTER_API_KEYS = [];
 try {
-    // import.meta.env.VITE_OPENROUTER_API_KEYS é como o Vite expõe variáveis de ambiente
-    // O '|| "[]"' garante que, se a variável não estiver definida, ele use um array vazio
+    // Acessa a variável de ambiente VITE_OPENROUTER_API_KEYS, que é injetada pelo Vite.
+    // O '|| "[]"' garante que, se a variável não estiver definida, ele use uma string vazia
+    // de array JSON para evitar erros de parse.
     const apiKeysString = import.meta.env.VITE_OPENROUTER_API_KEYS || "[]";
     OPENROUTER_API_KEYS = JSON.parse(apiKeysString);
 
-    // Garante que o resultado seja realmente um array
+    // Verifica se o resultado do parse é realmente um array.
     if (!Array.isArray(OPENROUTER_API_KEYS)) {
         OPENROUTER_API_KEYS = [];
-        console.error("VITE_OPENROUTER_API_KEYS não é um array JSON válido. Usando array vazio.");
+        console.error("VITE_OPENROUTER_API_KEYS não é um array JSON válido. Usando array vazio para as chaves da API.");
     }
 } catch (e) {
+    // Captura erros durante o parse do JSON da variável de ambiente.
     console.error("Erro ao parsear VITE_OPENROUTER_API_KEYS:", e);
-    OPENROUTER_API_KEYS = []; // Em caso de erro de parse, use um array vazio
+    OPENROUTER_API_KEYS = []; // Em caso de erro, define como um array vazio.
 }
 
-
+/**
+ * @function getRandomOpenRouterApiKey
+ * @description Seleciona uma chave de API aleatória da lista de chaves disponíveis.
+ * @returns {string|null} Uma chave de API aleatória ou null se nenhuma chave estiver configurada.
+ */
 function getRandomOpenRouterApiKey() {
     if (OPENROUTER_API_KEYS.length === 0) {
-        console.error("Erro: Nenhuma chave da API do OpenRouter configurada ou carregada.");
+        console.error("Erro: Nenhuma chave da API do OpenRouter configurada ou carregada. A IA não estará disponível.");
         return null;
     }
     const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
     return OPENROUTER_API_KEYS[randomIndex];
 }
 
+/**
+ * @async
+ * @function loadQuestions
+ * @description Carrega as questões de eletroquímica de um arquivo JSON local.
+ * Formata as questões para uso no chat.
+ */
 async function loadQuestions() {
     try {
         const response = await fetch('./data/questoes/eletroquimica.json');
@@ -47,12 +71,14 @@ async function loadQuestions() {
 
         let formattedQuestions = [];
         if (Array.isArray(data)) {
+            // Limita a 10 questões para evitar sobrecarga, se houver muitas.
             data.slice(0, 10).forEach(item => {
                 const questionText = item.questao;
                 const alternatives = item.alternativas;
                 const correctAnswer = item.resposta_correta;
                 if (questionText && alternatives && correctAnswer) {
                     let formattedAnswer = `${questionText}\n`;
+                    // Limita a 4 alternativas para o formato de exibição.
                     Object.entries(alternatives).slice(0, 4).forEach(([letter, option]) => {
                         formattedAnswer += `(${letter.toUpperCase()}) ${option}\n`;
                     });
@@ -64,6 +90,7 @@ async function loadQuestions() {
                 }
             });
         } else if (typeof data === 'object' && data !== null) {
+            // Caso o JSON contenha apenas uma questão (objeto único)
             const questionText = data.questao;
             const alternatives = data.alternativas;
             const correctAnswer = data.resposta_correta;
@@ -84,10 +111,15 @@ async function loadQuestions() {
         console.log(`✅ ${chatState.questionsList.length} questões carregadas.`);
     } catch (error) {
         console.error("⚠️ Erro ao carregar questões:", error);
-        chatState.questionsList = [];
+        chatState.questionsList = []; // Garante que a lista esteja vazia em caso de erro.
     }
 }
 
+/**
+ * @async
+ * @function loadPotentialsTable
+ * @description Carrega a tabela de potenciais padrão de um arquivo JSON local.
+ */
 async function loadPotentialsTable() {
     try {
         const response = await fetch('./data/tabelas/tabela_potenciais.json');
@@ -108,10 +140,16 @@ async function loadPotentialsTable() {
         console.log("✅ Tabela de potenciais carregada.");
     } catch (error) {
         console.error("⚠️ Erro ao carregar tabela de potenciais:", error);
-        chatState.potentialsTable = {};
+        chatState.potentialsTable = {}; // Garante que a tabela esteja vazia em caso de erro.
     }
 }
 
+/**
+ * @async
+ * @function loadKnowledgeBase
+ * @description Carrega o conteúdo da base de conhecimento de eletroquímica de um arquivo JSON local.
+ * Limita o tamanho do conteúdo para evitar exceder o limite de tokens da API.
+ */
 async function loadKnowledgeBase() {
     let content = "";
     const knowledgeBaseFile = './data/basededados/eletroquimica.json';
@@ -125,7 +163,9 @@ async function loadKnowledgeBase() {
         }
         const jsonData = await response.json();
 
+        let fileText = "";
         if (Array.isArray(jsonData)) {
+            // Se for um array de objetos, formata cada item.
             fileText = jsonData.map(item => {
                 let formattedItem = "";
                 if (item.topico) formattedItem += `Tópico: ${item.topico}\n`;
@@ -136,18 +176,27 @@ async function loadKnowledgeBase() {
                 return formattedItem;
             }).join("\n---\n");
         } else {
+            // Se for um objeto único, stringify.
             fileText = JSON.stringify(jsonData, null, 2);
         }
 
+        // Adiciona o conteúdo da base de dados, limitando o tamanho.
         content += `\n--- Conteúdo de ${knowledgeBaseFile} ---\n${fileText.substring(0, 7500)}\n`;
-        chatState.knowledgeBase = content.substring(0, 8000);
+        chatState.knowledgeBase = content.substring(0, 8000); // Limite final para a base de conhecimento.
         console.log(`📖 Base de dados carregada (${chatState.knowledgeBase.length} caracteres).`);
     } catch (error) {
         console.error(`⚠️ Erro ao ler ou processar a base de dados JSON '${knowledgeBaseFile}':`, error);
-        chatState.knowledgeBase = "";
+        chatState.knowledgeBase = ""; // Garante que a base de conhecimento esteja vazia em caso de erro.
     }
 }
 
+/**
+ * @function calcularVoltagemPilha
+ * @description Calcula a voltagem de uma pilha dados dois eletrodos,
+ * usando a tabela de potenciais carregada.
+ * @param {string} eletrodosStr Uma string contendo os dois eletrodos separados por 'e' (ex: 'cobre e zinco').
+ * @returns {string} A voltagem calculada ou uma mensagem de erro.
+ */
 function calcularVoltagemPilha(eletrodosStr) {
     const eletrodos = eletrodosStr.split(' e ').map(e => e.trim().toLowerCase()).filter(e => e);
 
@@ -159,6 +208,7 @@ function calcularVoltagemPilha(eletrodosStr) {
     for (const eletrodo of eletrodos) {
         let foundMatch = false;
         for (const keyMetal in chatState.potentialsTable) {
+            // Procura por correspondência parcial no nome do metal na tabela
             if (keyMetal.includes(eletrodo)) {
                 potentials[eletrodo] = chatState.potentialsTable[keyMetal];
                 foundMatch = true;
@@ -174,6 +224,7 @@ function calcularVoltagemPilha(eletrodosStr) {
         return "Não foi possível encontrar potenciais para ambos os eletrodos. Verifique a grafia.";
     }
 
+    // Identifica cátodo (maior potencial) e ânodo (menor potencial)
     const catodoName = Object.keys(potentials).reduce((a, b) => potentials[a] > potentials[b] ? a : b);
     const anodoName = Object.keys(potentials).reduce((a, b) => potentials[a] < potentials[b] ? a : b);
     const voltagem = potentials[catodoName] - potentials[anodoName];
@@ -181,15 +232,31 @@ function calcularVoltagemPilha(eletrodosStr) {
     return `A voltagem da pilha com ${catodoName.charAt(0).toUpperCase() + catodoName.slice(1)} e ${anodoName.charAt(0).toUpperCase() + anodoName.slice(1)} é de ${voltagem.toFixed(2)} V.`;
 }
 
+/**
+ * @function generateQuestion
+ * @description Seleciona uma questão aleatória da lista de questões carregadas.
+ * @returns {string} A pergunta formatada da questão ou uma mensagem de que não há questões.
+ */
 function generateQuestion() {
     if (chatState.questionsList.length === 0) {
         return "Não há mais questões disponíveis.";
     }
     const q = chatState.questionsList[Math.floor(Math.random() * chatState.questionsList.length)];
-    chatState.currentQuestionData = q;
+    chatState.currentQuestionData = q; // Armazena a questão atual para futuras interações.
     return q.pergunta;
 }
 
+/**
+ * @async
+ * @function callOpenRouterAPI
+ * @description Faz uma chamada à API do OpenRouter para gerar uma resposta da IA.
+ * @param {string} prompt O prompt do usuário para a IA.
+ * @param {string} systemPrompt O prompt do sistema que define o comportamento da IA.
+ * @param {string} [model="meta-llama/llama-3.2-3b-instruct:free"] O modelo da IA a ser usado.
+ * @param {number} [temperature=0.5] A temperatura para a geração da IA (controla a criatividade).
+ * @param {number} [max_tokens=1500] O número máximo de tokens na resposta da IA.
+ * @returns {Promise<string>} A resposta da IA ou uma mensagem de erro.
+ */
 async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama-3.2-3b-instruct:free", temperature = 0.5, max_tokens = 1500) {
     const currentApiKey = getRandomOpenRouterApiKey();
     if (!currentApiKey) {
@@ -207,8 +274,8 @@ async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama
             headers: {
                 "Authorization": "Bearer " + currentApiKey,
                 "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin,
-                "X-Title": "PilhIA Frontend"
+                "HTTP-Referer": window.location.origin, // Necessário para OpenRouter
+                "X-Title": "PilhIA Frontend" // Necessário para OpenRouter
             },
             body: JSON.stringify({
                 model: model,
@@ -256,6 +323,7 @@ async function callOpenRouterAPI(prompt, systemPrompt, model = "meta-llama/llama
     }
 }
 
+// Prompt do sistema para o chatbot PilhIA, definindo seu comportamento e restrições.
 const SYSTEM_PROMPT_CHATBOT = `
 Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroquímica, baterias, eletrólise e pilha de Daniell.
 
@@ -289,27 +357,39 @@ Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroqu
 - Confirme se respondeu adequadamente à dúvida.
 `;
 
+/**
+ * @async
+ * @function processUserQuery
+ * @description Processa a entrada do usuário, determinando a intenção e gerando uma resposta.
+ * @param {string} user_input A consulta do usuário.
+ * @returns {Promise<string>} A resposta do chatbot.
+ */
 async function processUserQuery(user_input) {
     const user_lower = user_input.toLowerCase();
     let response = "";
 
+    // Verifica se a consulta é para calcular voltagem de pilha
     if (user_lower.includes("calcular a voltagem de uma pilha de")) {
         const eletrodosStr = user_lower.split("de uma pilha de")[1].trim();
         response = calcularVoltagemPilha(eletrodosStr);
-        chatState.currentQuestionData = null;
+        chatState.currentQuestionData = null; // Reseta a questão atual se for uma nova consulta.
     } else if (chatState.currentQuestionData) {
+        // Se houver uma questão em andamento
         const questionData = chatState.currentQuestionData;
         const correct_answer_letter = questionData.resposta_correta.toLowerCase();
 
         if (user_lower === "sim") {
+            // Se o usuário quer outra questão
             response = generateQuestion();
             if (response.includes("Não há mais questões disponíveis.")) {
                 chatState.currentQuestionData = null;
             }
         } else if (user_lower === "não") {
+            // Se o usuário não quer mais questões
             response = "Ótimo. Deseja mais alguma coisa?";
             chatState.currentQuestionData = null;
         } else if (['a', 'b', 'c', 'd', 'e'].includes(user_lower)) {
+            // Se o usuário respondeu à questão
             const explanationPrompt = (
                 `Para a questão: '${questionData.pergunta}'\n`
                 + `A alternativa correta é '(${correct_answer_letter.toUpperCase()})'. `
@@ -327,16 +407,107 @@ async function processUserQuery(user_input) {
                 response = `Você errou. A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
             }
         } else {
-            chatState.currentQuestionData = null;
+            // Se a resposta não for 'sim', 'não' ou uma alternativa, trata como uma consulta geral.
+            chatState.currentQuestionData = null; // Reseta a questão atual.
             const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
             response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
         }
     } else if (user_lower.includes("gerar questões") || user_lower.includes("questões enem") || user_lower.includes("questão")) {
+        // Se o usuário pede por questões
         response = generateQuestion();
     } else {
+        // Para todas as outras consultas, usa a base de conhecimento e a IA.
         const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
         response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
     }
 
     return response;
 }
+
+/**
+ * @function displayMessage
+ * @description Adiciona uma mensagem ao contêiner de chat na interface do usuário.
+ * @param {string} sender O remetente da mensagem ('user' ou 'PilhIA').
+ * @param {string} message O texto da mensagem.
+ */
+function displayMessage(sender, message) {
+    const chatOutput = document.getElementById('chat-output');
+    if (chatOutput) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', sender);
+        messageElement.innerHTML = `<p><strong>${sender === 'user' ? 'Você' : 'PilhIA'}:</strong> ${message}</p>`;
+        chatOutput.appendChild(messageElement);
+        chatOutput.scrollTop = chatOutput.scrollHeight; // Rola para o final do chat
+    } else {
+        console.error("Elemento 'chat-output' não encontrado.");
+    }
+}
+
+/**
+ * @async
+ * @function handleUserInput
+ * @description Lida com a entrada do usuário do formulário de chat.
+ * @param {Event} event O evento de submissão do formulário.
+ */
+async function handleUserInput(event) {
+    event.preventDefault(); // Impede o recarregamento da página
+
+    const userInputField = document.getElementById('user-input');
+    if (!userInputField) {
+        console.error("Elemento 'user-input' não encontrado.");
+        return;
+    }
+
+    const userMessage = userInputField.value.trim();
+    if (userMessage === '') {
+        return; // Não processa mensagens vazias
+    }
+
+    displayMessage('user', userMessage);
+    userInputField.value = ''; // Limpa o campo de entrada
+
+    // Exibe um indicador de carregamento
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+    }
+
+    try {
+        const aiResponse = await processUserQuery(userMessage);
+        displayMessage('PilhIA', aiResponse);
+    } catch (error) {
+        console.error("Erro ao processar a consulta do usuário:", error);
+        displayMessage('PilhIA', "Desculpe, ocorreu um erro ao processar sua solicitação.");
+    } finally {
+        // Esconde o indicador de carregamento
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * @function initializeChat
+ * @description Função de inicialização principal da aplicação.
+ * Carrega todos os dados necessários e configura os event listeners.
+ */
+async function initializeChat() {
+    console.log("Iniciando PilhIA...");
+    // Carrega os dados em sequência
+    await loadPotentialsTable();
+    await loadKnowledgeBase();
+    await loadQuestions();
+    console.log("PilhIA pronta para interagir!");
+
+    // Configura o event listener para o formulário de chat
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+        chatForm.addEventListener('submit', handleUserInput);
+    } else {
+        console.error("Elemento 'chat-form' não encontrado.");
+    }
+}
+
+// Adiciona um event listener para garantir que o DOM esteja completamente carregado
+// antes de inicializar o chat. Isso resolve o ReferenceError.
+document.addEventListener('DOMContentLoaded', initializeChat);
