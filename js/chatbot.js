@@ -1,6 +1,6 @@
-let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%";
+let openRouterApiKey = "%%OPENROUTER_API_KEY_PLACEHOLDER%%"; // Declarada APENAS UMA VEZ aqui.
 
-function ensureApiKey() {
+function ensureApiKey() { // Esta é a ÚNICA DECLARAÇÃO de ensureApiKey no arquivo
     if (!openRouterApiKey || openRouterApiKey.trim() === "") {
         const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
         if (userKey && userKey.trim() !== "") {
@@ -91,19 +91,8 @@ const chatState = {
     knowledgeBase: ""
 };
 
-function ensureApiKey() {
-    if (!openRouterApiKey || openRouterApiKey.trim() === "") {
-        const userKey = prompt("Por favor, insira sua chave API do OpenRouter:");
-        if (userKey && userKey.trim() !== "") {
-            openRouterApiKey = userKey.trim();
-            return openRouterApiKey;
-        } else {
-            alert("Chave API é necessária para usar a IA.");
-            return null;
-        }
-    }
-    return openRouterApiKey;
-}
+// REMOVIDO: A SEGUNDA DECLARAÇÃO DA FUNÇÃO 'ensureApiKey' FOI RETIRADA AQUI.
+// A função 'ensureApiKey' já está definida no início do arquivo.
 
 async function loadQuestions() {
     try {
@@ -241,14 +230,14 @@ function calcularVoltagemPilha(eletrodosStr) {
 
     const [eletrodo1, eletrodo2] = eletrodos;
     const potencial1 = potentials[eletrodo1];
-    const potencial2 = potentials[eletrodo2];
+    const potencial2 = potentials[eletro2];
 
     if (potencial1 === undefined || potencial2 === undefined) {
         return "Não foi possível encontrar os potenciais para um ou ambos os eletrodos especificados.";
     }
 
     const E_celula = Math.abs(potencial1 - potencial2);
-    return `A voltagem da pilha entre ${eletrodo1} e ${eletrodo2} é de aproximadamente ${E_celula.toFixed(3)} V.`;
+    return `A voltagem da pilha entre ${eletrodo1} e ${eletro2} é de aproximadamente ${E_celula.toFixed(3)} V.`;
 }
 
 const SYSTEM_PROMPT_CHATBOT = `
