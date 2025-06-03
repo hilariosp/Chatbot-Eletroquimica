@@ -72,14 +72,12 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # MUDANÇA AQUI: Especifica os caminhos dos arquivos/pastas a serem incluídos no artefato.
-          # Isso garante que o 'js/main.js' modificado seja incluído.
           path: |
-            ./ # Inclui todos os arquivos na raiz do repositório
-            ./css # Inclui a pasta css e seu conteúdo
-            ./js # Inclui a pasta js e seu conteúdo (incluindo o main.js modificado)
-            ./data # Inclui a pasta data e seu conteúdo
-            ./images # Inclui a pasta images e seu conteúdo
+            ./ 
+            ./css 
+            ./js 
+            ./data 
+            ./images 
             # Adicione outras pastas ou arquivos específicos se houver
             
       - name: Deploy to GitHub Pages
