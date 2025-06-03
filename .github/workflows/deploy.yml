@@ -1,10 +1,12 @@
 name: Deploy to GitHub Pages
 
+# Dispara o workflow em pushes para a branch 'main'
 on:
   push:
     branches:
       - main # Mude para 'master' ou sua branch principal, se for diferente
 
+# Define permissões para o job de deploy poder interagir com o GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -12,76 +14,46 @@ permissions:
 
 jobs:
   deploy:
+    # Se você usou um "Environment Secret" no Passo 3A e criou um ambiente chamado 'github-pages'
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+      name: github-pages # Certifique-se que este é o nome do ambiente que você criou
+      url: ${{ steps.deployment.outputs.page_url }} # Define a URL de deploy após o sucesso
+
+    runs-on: ubuntu-latest # Usa a última versão estável do Ubuntu como ambiente de execução
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # Ação para baixar o código do seu repositório
 
       - name: Replace API Key Placeholder
-        # Define as variáveis de ambiente para as chaves API.
-        # Isso garante que elas sejam acessíveis no bloco 'run'.
-        env:
-          OPENROUTER_API_KEY_1: ${{ secrets.OPENROUTER_API_KEY_1 }}
-          OPENROUTER_API_KEY_2: ${{ secrets.OPENROUTER_API_KEY_2 }}
-          OPENROUTER_API_KEY_3: ${{ secrets.OPENROUTER_API_KEY_3 }}
-          OPENROUTER_API_KEY_4: ${{ secrets.OPENROUTER_API_KEY_4 }}
-          OPENROUTER_API_KEY_5: ${{ secrets.OPENROUTER_API_KEY_5 }}
-          OPENROUTER_API_KEY_6: ${{ secrets.OPENROUTER_API_KEY_6 }}
-          OPENROUTER_API_KEY_7: ${{ secrets.OPENROUTER_API_KEY_7 }}
-          OPENROUTER_API_KEY_8: ${{ secrets.OPENROUTER_API_KEY_8 }}
-          OPENROUTER_API_KEY_9: ${{ secrets.OPENROUTER_API_KEY_9 }}
-          OPENROUTER_API_KEY_10: ${{ secrets.OPENROUTER_API_KEY_10 }}
+        # Certifique-se que o nome do segredo 'OPENROUTER_API_KEY_FOR_PAGES' é o mesmo do Passo 3
         run: |
-          JS_FILE="js/main.js"
-          API_KEYS=""
-          
-          # Constrói a string de chaves API separadas por vírgulas e entre aspas duplas.
-          # Verifica se cada segredo existe e não está vazio antes de adicioná-lo.
-          if [[ -n "${{ env.OPENROUTER_API_KEY_1 }}" ]]; then API_KEYS+='"${{ env.OPENROUTER_API_KEY_1 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_2 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_2 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_3 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_3 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_4 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_4 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_5 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_5 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_6 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_6 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_7 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_7 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_8 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_8 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_9 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_9 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_10 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_10 }}"'; fi
-
-          JOINED_KEYS="${API_KEYS}"
-          echo "Generated API Keys String: ${JOINED_KEYS}"
-          
-          echo "Attempting to replace placeholder in $JS_FILE"
-          if [ -f "$JS_FILE" ]; then
-            # Usa um arquivo temporário para garantir que a substituição seja gravada corretamente.
-            # O 'sed' lê o arquivo original, faz a substituição e escreve em um arquivo temporário.
-            # Em seguida, o arquivo temporário é movido para sobrescrever o original.
-            sed "s|/\*%%OPENROUTER_API_KEYS_ARRAY_PLACEHOLDER%%\*/|${JOINED_KEYS}|g" "$JS_FILE" > "$JS_FILE.tmp"
-            mv "$JS_FILE.tmp" "$JS_FILE"
-            
-            echo "Placeholder replacement done."
-            
-            # Comando para inspecionar o conteúdo do arquivo *imediatamente após* a substituição
-            echo "--- Content of $JS_FILE after sed on runner: ---"
-            cat "$JS_FILE"
-            echo "--- End of content ---"
+          echo "Attempting to replace placeholder in js/main.js"
+          # Verifica se o arquivo existe no caminho js/main.js
+          if [ -f "js/main.js" ]; then
+            # Substitui o placeholder no arquivo localizado em js/main.js
+            sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY_FOR_PAGES }}|g" js/main.js
+            echo "Placeholder replacement done in js/main.js."
           else
-            echo "Error: $JS_FILE not found!"
+            echo "Error: js/main.js not found!"
+            # Lista os arquivos na pasta js para ajudar na depuração
+            echo "Files in js/ directory:"
+            ls -la js/
+            # Lista os arquivos na raiz para ajudar na depuração
+            echo "Files in root directory:"
+            ls -la ./
             exit 1
           fi
+        # IMPORTANTE: O caminho "js/main.js" foi corrigido.
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v5 # Ação para configurar o GitHub Pages
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3 # Ação para empacotar os arquivos do site
         with:
           path: '.' # Envia todo o conteúdo do repositório (ajuste se necessário)
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4 # Ação para fazer o deploy no GitHub Pages
