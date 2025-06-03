@@ -6,15 +6,20 @@ const chatState = {
     knowledgeBase: ""
 };
 
-const OPENROUTER_API_KEYS = [/*%%OPENROUTER_API_KEYS_ARRAY_PLACEHOLDER%%*/];
+// SUAS CHAVES DA API DO OPENROUTER
+// Agora configurado para uma única chave.
+// A chave real será injetada pelo GitHub Actions durante o deploy.
+const OPENROUTER_API_KEYS = ["%%OPENROUTER_API_KEY_PLACEHOLDER%%"];
 
+// Função para obter a chave de API (agora é sempre a única)
 function getRandomOpenRouterApiKey() {
-    if (OPENROUTER_API_KEYS.length === 0) {
-        console.error("Erro: Nenhuma chave da API do OpenRouter configurada. O array de chaves da API está vazio após o deploy.");
+    // Verifica se a chave é o placeholder ou se o array está vazio após o deploy
+    if (OPENROUTER_API_KEYS.length === 0 || OPENROUTER_API_KEYS[0] === "%%OPENROUTER_API_KEY_PLACEHOLDER%%") {
+        console.error("Erro: Chave API não foi substituída corretamente durante o deploy ou está vazia.");
         return null;
     }
-    const randomIndex = Math.floor(Math.random() * OPENROUTER_API_KEYS.length);
-    return OPENROUTER_API_KEYS[randomIndex];
+    // Retorna a única chave disponível
+    return OPENROUTER_API_KEYS[0];
 }
 
 async function loadQuestions() {
@@ -321,5 +326,5 @@ async function processUserQuery(user_input) {
         response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
     }
 
-    return response;
+    return response
 }
