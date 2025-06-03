@@ -690,4 +690,5 @@ async function initializeChatApp() {
         });
     }
 }
+
 document.addEventListener('DOMContentLoaded', initializeChatApp);
