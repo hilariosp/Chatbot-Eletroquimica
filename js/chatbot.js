@@ -36,9 +36,9 @@ function getRandomOpenRouterApiKey() {
     return OPENROUTER_API_KEYS[randomIndex];
 }
 
-// ==========================================================
+// ===========================================================
 // FUNÇÕES DE CARREGAMENTO DE DADOS ESTÁTICOS (do GitHub Pages)
-// ==========================================================
+// ===========================================================
 
 async function loadQuestions() {
     try {
