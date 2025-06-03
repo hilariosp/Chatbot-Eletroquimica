@@ -22,38 +22,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Replace API Key Placeholder
-        env:
-          OPENROUTER_API_KEY_1: ${{ secrets.OPENROUTER_API_KEY_1 }}
-          OPENROUTER_API_KEY_2: ${{ secrets.OPENROUTER_API_KEY_2 }}
-          OPENROUTER_API_KEY_3: ${{ secrets.OPENROUTER_API_KEY_3 }}
-          OPENROUTER_API_KEY_4: ${{ secrets.OPENROUTER_API_KEY_4 }}
-          OPENROUTER_API_KEY_5: ${{ secrets.OPENROUTER_API_KEY_5 }}
-          OPENROUTER_API_KEY_6: ${{ secrets.OPENROUTER_API_KEY_6 }}
-          OPENROUTER_API_KEY_7: ${{ secrets.OPENROUTER_API_KEY_7 }}
-          OPENROUTER_API_KEY_8: ${{ secrets.OPENROUTER_API_KEY_8 }}
-          OPENROUTER_API_KEY_9: ${{ secrets.OPENROUTER_API_KEY_9 }}
-          OPENROUTER_API_KEY_10: ${{ secrets.OPENROUTER_API_KEY_10 }}
         run: |
           JS_FILE="js/main.js"
-          API_KEYS=""
           
-          if [[ -n "${{ env.OPENROUTER_API_KEY_1 }}" ]]; then API_KEYS+='"${{ env.OPENROUTER_API_KEY_1 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_2 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_2 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_3 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_3 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_4 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_4 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_5 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_5 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_6 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_6 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_7 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_7 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_8 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_8 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_9 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_9 }}"'; fi
-          if [[ -n "${{ env.OPENROUTER_API_KEY_10 }}" ]]; then if [[ -n "$API_KEYS" ]]; then API_KEYS+=", "; fi; API_KEYS+='"${{ env.OPENROUTER_API_KEY_10 }}"'; fi
+          # A chave API única será lida do segredo OPENROUTER_API_KEY_FOR_PAGES
+          API_KEY_VALUE="${{ secrets.OPENROUTER_API_KEY_FOR_PAGES }}"
 
-          JOINED_KEYS="${API_KEYS}"
-          echo "Generated API Keys String: ${JOINED_KEYS}"
-          
           echo "Attempting to replace placeholder in $JS_FILE"
           if [ -f "$JS_FILE" ]; then
-            sed "s|/\*%%OPENROUTER_API_KEYS_ARRAY_PLACEHOLDER%%\*/|${JOINED_KEYS}|g" "$JS_FILE" > "$JS_FILE.tmp"
+            # Substitui o placeholder de chave única no arquivo JavaScript
+            # O placeholder esperado no JS é "%%OPENROUTER_API_KEY_PLACEHOLDER%%"
+            sed "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${API_KEY_VALUE}|g" "$JS_FILE" > "$JS_FILE.tmp"
             mv "$JS_FILE.tmp" "$JS_FILE"
             
             echo "Placeholder replacement done."
