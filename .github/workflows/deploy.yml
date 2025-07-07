@@ -14,19 +14,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. PASSO DE DEBUG: Lista todos os arquivos para encontrarmos o caminho correto
-      - name: List files in workspace
-        run: ls -R
-
-      # 3. Tenta substituir o placeholder com o caminho que acreditamos ser o correto
+      # CORREÇÃO 1: Usa o caminho correto para o arquivo, sem a pasta "Chatbot-Eletroquimica"
       - name: Substituir placeholder pela chave do secret
         run: |
-          sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY }}|g" "Chatbot-Eletroquimica/js/chatbot.js"
+          sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY }}|g" "js/chatbot.js"
         shell: bash
 
-      # 4. Faz o deploy dos arquivos
+      # CORREÇÃO 2: Publica o diretório raiz, que contém todos os seus arquivos
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./Chatbot-Eletroquimica
+          publish_dir: .
