@@ -10,47 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Baixa o código do seu repositório
+      # 1. Baixa o código mais recente do seu repositório
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configura o ambiente Node.js para rodar o script
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20' # Usa a versão 20 do Node.js
-
-      # 3. Roda um script Node.js para encontrar e substituir a chave de forma segura
-      - name: Replace API Key Placeholder
-        env:
-          # Passa o secret do GitHub para o ambiente do script
-          API_KEY_SECRET: ${{ secrets.OPENROUTER_API_KEY }}
+      # 2. Substitui o placeholder no arquivo usando 'sed'
+      - name: Substituir placeholder pela chave do secret
         run: |
-          node -e "
-            const fs = require('fs');
-            const filePath = 'js/chatbot.js';
-            console.log('--- Iniciando substituição da chave de API em', filePath);
-            
-            const content = fs.readFileSync(filePath, 'utf8');
-            const placeholder = '%%OPENROUTER_API_KEY_PLACEHOLDER%%';
-            const apiKey = process.env.API_KEY_SECRET;
+          echo "--> Tentando substituir a chave em js/chatbot.js"
+          sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY }}|g" "js/chatbot.js"
+          echo "--> Comando de substituição executado."
+        shell: bash
 
-            if (!apiKey || apiKey.length < 10) {
-              console.error('ERRO: A chave de API (secret) não está disponível ou é inválida. Verifique os secrets do seu repositório.');
-              process.exit(1);
-            }
+      # 3. PASSO DE VERIFICAÇÃO CRUCIAL: Mostra as 5 primeiras linhas do arquivo APÓS a modificação
+      - name: Verificar conteúdo do arquivo antes do deploy
+        run: |
+          echo "--> Verificando o conteúdo de js/chatbot.js para confirmar a substituição:"
+          head -n 5 js/chatbot.js
+        shell: bash
 
-            if (content.includes(placeholder)) {
-              const newContent = content.replace(placeholder, apiKey);
-              fs.writeFileSync(filePath, newContent, 'utf8');
-              console.log('SUCESSO: A chave de API foi substituída no arquivo.');
-            } else {
-              console.error('ERRO: O placeholder %%OPENROUTER_API_KEY_PLACEHOLDER%% não foi encontrado no arquivo', filePath);
-              process.exit(1);
-            }
-          "
-      
-      # 4. Faz o deploy para o GitHub Pages
+      # 4. Faz o deploy do diretório atual (que contém o arquivo modificado) para o GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
