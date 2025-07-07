@@ -10,26 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Baixa o código mais recente do seu repositório
+      # 1. Baixa o código do seu repositório
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Substitui o placeholder no arquivo usando 'sed'
+      # 2. Substitui o placeholder no arquivo
       - name: Substituir placeholder pela chave do secret
         run: |
-          echo "--> Tentando substituir a chave em js/chatbot.js"
           sed -i "s|%%OPENROUTER_API_KEY_PLACEHOLDER%%|${{ secrets.OPENROUTER_API_KEY }}|g" "js/chatbot.js"
-          echo "--> Comando de substituição executado."
         shell: bash
 
-      # 3. PASSO DE VERIFICAÇÃO CRUCIAL: Mostra as 5 primeiras linhas do arquivo APÓS a modificação
-      - name: Verificar conteúdo do arquivo antes do deploy
+      # 3. PASSO NOVO: Faz um commit local das alterações para que a ação de deploy as veja
+      - name: Commit dos arquivos modificados
         run: |
-          echo "--> Verificando o conteúdo de js/chatbot.js para confirmar a substituição:"
-          head -n 5 js/chatbot.js
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add js/chatbot.js
+          git commit -m "Substituir chave de API para o deploy"
         shell: bash
-
-      # 4. Faz o deploy do diretório atual (que contém o arquivo modificado) para o GitHub Pages
+      
+      # 4. Faz o deploy do diretório atual, que agora inclui o commit com o arquivo modificado
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
