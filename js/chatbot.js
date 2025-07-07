@@ -21,7 +21,7 @@ function getOpenRouterApiKey() {
         return OPENROUTER_API_KEYS[randomIndex];
     }
     // Se não há chave definida, peça ao usuário
-    if (!openRouterApiKey || openRouterApiKey === "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") {
+    if (!openRouterApiKey || openRouterApiKey === "%%OPENROUTER_API_KEY_PLACEHOLDER%%") {
         let userKey = "";
         // Loop até o usuário fornecer uma chave válida ou cancelar
         while (!userKey) {
