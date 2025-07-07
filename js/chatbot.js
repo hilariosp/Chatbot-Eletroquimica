@@ -1,5 +1,5 @@
 // Chave da API será substituída pelo GitHub Actions no deploy
-let openRouterApiKey = "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";
+let openRouterApiKey = "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";
 
 // Estado global do chat e dados auxiliares
 const chatState = {
@@ -21,7 +21,7 @@ function getOpenRouterApiKey() {
         return OPENROUTER_API_KEYS[randomIndex];
     }
     // Se não há chave definida, peça ao usuário
-    if (!openRouterApiKey || openRouterApiKey === "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") {
+    if (!openRouterApiKey || openRouterApiKey === "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") {
         let userKey = "";
         // Loop até o usuário fornecer uma chave válida ou cancelar
         while (!userKey) {
