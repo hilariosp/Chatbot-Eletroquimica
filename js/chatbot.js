@@ -71,7 +71,7 @@ async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT) {
                 "HTTP-Referer": window.location.origin,
                 "X-Title": "PilhIA Frontend"
             },
-            body: JSON.stringify({ model: "google/gemma-3n-e4b-it:free", messages: messages })
+            body: JSON.stringify({ model: "google/gemma-7b-it:free", messages: messages })
         });
         if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
         const data = await response.json();
@@ -227,7 +227,7 @@ Você deve responder perguntas, explicar conceitos e ajudar usuários a resolver
 
 // ==================== CHAMADA À OPENROUTER ====================
 
-async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, model = "meta-llama/llama-3.2-3b-instruct:free", temperature = 0.5, max_tokens = 1500) {
+async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, model = "google/gemma-7b-it:free", temperature = 0.5, max_tokens = 1500) {
     const currentApiKey = getOpenRouterApiKey(); // <-- use a função corrigida
     if (!currentApiKey) {
         return "⚠️ Erro: Nenhuma chave da API configurada. A IA não está disponível.";
