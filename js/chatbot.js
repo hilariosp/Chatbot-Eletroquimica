@@ -70,7 +70,7 @@ async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT) {
                 "HTTP-Referer": window.location.origin,
                 "X-Title": "PilhIA Frontend"
             },
-            body: JSON.stringify({ model: "meta-llama/llama-3.2-3b-instruct:free", messages: messages })
+            body: JSON.stringify({ model: "google/gemma-3n-e4b-it:free", messages: messages })
         });
         if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
         const data = await response.json();
