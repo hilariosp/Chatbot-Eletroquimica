@@ -12,6 +12,34 @@ const listaDeChavesParciais = [
     {
         prefixo: "sk-or-v1-ae56bac32a43f5bdf0f4bf88c9ba894f6698ad2e315b2302243965f102c71a",
         sufixo_secreto: "64"
+    },
+    {
+        prefixo: "sk-or-v1-6448d95777ee157d65c0bbbfce320215db166e20a60d558132fdb263a2f35d",
+        sufixo_secreto: "d3"
+    },
+    {
+        prefixo: "sk-or-v1-d2f8bbf3114e37099ea143c0c5f89fcd67bdc8fee97c3db27757cc17e73e1d",
+        sufixo_secreto: "54"
+    },
+    {
+        prefixo: "sk-or-v1-f7aea869f4a46f3491f0553a985cabded6023cb96cf3fdf6f03b7627fdea36",
+        sufixo_secreto: "27"
+    },
+    {
+        prefixo: "sk-or-v1-54f127a5dd20a6b0629aa66847cc4c7df9a54067107ceb4bc7e0a7641a3287",
+        sufixo_secreto: "40"
+    },
+    {
+        prefixo: "sk-or-v1-a932c68afeaa8d4c1dceba885c84cef22f57a6711215c290f2ecea352b76fd",
+        sufixo_secreto: "5a"
+    },
+    {
+        prefixo: "sk-or-v1-97ae06d8d233f5401ff40b39d465149e660102e0533b2dd80e8ae3733d2f18",
+        sufixo_secreto: "d0"
+    },
+    {
+        prefixo: "sk-or-v1-205e3a201f340a687a2c39b7bcb3d6eb29bde388f0528d2b8c9d3f5f304844",
+        sufixo_secreto: "31"
     }
 ];
 
