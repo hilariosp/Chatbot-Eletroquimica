@@ -5,6 +5,16 @@
     "potencial": 2.87
   },
   {
+    "metal": "Prata (II)",
+    "semirreacao": "Ag²⁺ + e⁻ → Ag",
+    "potencial": 1.98
+  },
+  {
+    "metal": "Prata 2",
+    "semirreacao": "Ag²⁺ + e⁻ → Ag",
+    "potencial": 1.98
+  },
+  {
     "metal": "Permanganato (em meio ácido)",
     "semirreacao": "MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O",
     "potencial": 1.51
@@ -20,7 +30,17 @@
     "potencial": 1.50
   },
   {
+    "metal": "Ouro 3",
+    "semirreacao": "Au³⁺ + 3e⁻ → Au",
+    "potencial": 1.50
+  },
+  {
     "metal": "Cobalto (III)",
+    "semirreacao": "Co³⁺ + e⁻ → Co²⁺",
+    "potencial": 1.82
+  },
+  {
+    "metal": "Cobalto 3",
     "semirreacao": "Co³⁺ + e⁻ → Co²⁺",
     "potencial": 1.82
   },
@@ -44,8 +64,18 @@
     "semirreacao": "Ag⁺ + e⁻ → Ag",
     "potencial": 0.80
   },
+    {
+    "metal": "Prata",
+    "semirreacao": "Ag⁺ + e⁻ → Ag",
+    "potencial": 0.80
+  },
   {
     "metal": "Ferro (III)",
+    "semirreacao": "Fe³⁺ + e⁻ → Fe²⁺",
+    "potencial": 0.77
+  },
+    {
+    "metal": "Ferro 3",
     "semirreacao": "Fe³⁺ + e⁻ → Fe²⁺",
     "potencial": 0.77
   },
@@ -75,14 +105,24 @@
     "potencial": 0.34
   },
   {
+    "metal": "Cobre 2",
+    "semirreacao": "Cu²⁺ + 2e⁻ → Cu",
+    "potencial": 0.34
+  },
+  {
     "metal": "Cobre (I)",
     "semirreacao": "Cu⁺ + e⁻ → Cu",
     "potencial": 0.52
   },
   {
-  "metal": "cobre",
-  "semirreacao": "Cu²⁺ + 2e⁻ → Cu",
-  "potencial": 0.34 
+    "metal": "Cobre 1",
+    "semirreacao": "Cu²⁺ + 2e⁻ → Cu",
+    "potencial": 0.34 
+  },
+  {
+    "metal": "Cobre",
+    "semirreacao": "Cu²⁺ + 2e⁻ → Cu",
+    "potencial": 0.34 
   },
   {
     "metal": "Hidrogênio (padrão)",
@@ -126,6 +166,11 @@
   },
   {
     "metal": "Ferro (II)",
+    "semirreacao": "Fe²⁺ + 2e⁻ → Fe",
+    "potencial": -0.44
+  },
+  {
+    "metal": "Ferro 2",
     "semirreacao": "Fe²⁺ + 2e⁻ → Fe",
     "potencial": -0.44
   },
