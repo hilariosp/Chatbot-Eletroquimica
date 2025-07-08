@@ -54,43 +54,6 @@ function getOpenRouterApiKey() {
     }
 }
 
-// ==================== CHAMADA À OPENROUTER ====================
-// Esta função agora usa a chave montada pela função acima
-async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT) {
-    const currentApiKey = getOpenRouterApiKey();
-    if (!currentApiKey) {
-        return "⚠️ Chave API inválida ou não montada. A IA não pode ser contatada.";
-    }
-    try {
-        const messages = [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }];
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + currentApiKey,
-                "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin,
-                "X-Title": "PilhIA Frontend"
-            },
-            body: JSON.stringify({ model: "google/gemma-7b-it:free", messages: messages })
-        });
-        if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "Sem resposta da IA.";
-    } catch (error) {
-        console.error("Erro ao chamar a API:", error);
-        return `⚠️ Erro na comunicação com a IA: ${error.message}.`;
-    }
-}
-
-// ================================================================
-//      O RESTO DO SEU CÓDIGO (LÓGICA DO CHAT, UI, ETC.)
-//      As funções abaixo são do seu projeto original e podem ser mantidas.
-// ================================================================
-
-// (Cole aqui o resto das suas funções: loadQuestions, loadPotentialsTable, 
-// loadKnowledgeBase, calcularVoltagemPilha, generateQuestion, 
-// SYSTEM_PROMPT_CHATBOT, processUserQuery, e o DOMContentLoaded)
-
 async function loadQuestions() {
     try {
         const response = await fetch('./data/questoes/eletroquimica.json');
@@ -154,7 +117,7 @@ async function loadKnowledgeBase() {
                 return formattedItem;
             }).join("\n---\n");
         }
-        chatState.knowledgeBase = fileText.substring(0, 8000);
+        chatState.knowledgeBase = fileText; // Carrega a base de dados completa
     } catch (error) {
         console.error(`⚠️ Erro ao carregar a base de dados:`, error);
     }
@@ -192,43 +155,25 @@ function generateQuestion() {
     return q.pergunta;
 }
 
+// ==================== PROMPT DO SISTEMA (CORRIGIDO) ====================
+// Esta versão é mais concisa e direta para evitar erros com o provedor da API.
 const SYSTEM_PROMPT_CHATBOT = `
-Você é PilhIA, um assistente especializado e focado EXCLUSIVAMENTE em eletroquímica, baterias, eletrólise e pilha de Daniell.
-Você deve responder perguntas, explicar conceitos e ajudar usuários a resolver problemas relacionados a esses tópicos. Sua base de conhecimento inclui questões de eletroquímica, tabela de potenciais eletroquímicos e uma base de dados sobre eletroquímica.
-1. COMPORTAMENTO:
-- Mantenha respostas claras, concisas e diretamente relacionadas à eletroquímica.
-- **FORNEÇA RESPOSTAS APENAS COM BASE NA DOCUMENTAÇÃO DE REFERÊNCIA EXPLÍCITA NO CONTEXTO. NÃO BUSQUE INFORMAÇÕES EXTERNAS.**
-- **Se a pergunta for para 'entender' ou 'explicar' um conceito presente no contexto (ex: 'Quero entender eletroquímica', 'Explique a eletrólise'), você DEVE usar o conteúdo da base de dados para fornecer uma explicação clara e concisa.**
-- **Se o usuário solicitar uma explicação usando analogias (ex: 'Explique eletroquímica fazendo analogias com um jogo'), você PODE usar analogias, desde que elas sirvam para CLARIFICAR os conceitos de eletroquímica presentes na sua base de dados.**
-- Se o conceito não estiver explicitamente no contexto, ou a pergunta for muito vaga ou fora do tópico de eletroquímica (baterias, eletrólise, pilha de Daniell), responda APENAS E EXCLUSIVAMENTE: "Não sei responder isso".
-- Se a pergunta for incompleta (ex: 'o que é a'), responda: "Não sei responder isso".
-- Se for perguntado algo fora de eletroquímica (baterias, eletrólise, pilha de Daniell), responda que não pode responder por estar fora do assunto.
-- Se pedir questões sobre eletroquímica, você deve pegar elas diretamente da sua lista de questões (que está no seu contexto), e soltar apenas uma por vez.
-- Ao explicar a resposta de uma questão, forneça APENAS a justificativa conceitual e quimicamente ACURADA para a alternativa CORRETA. NÃO re-afirme a letra da alternativa correta, NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão. Sua explicação deve ser uma justificativa direta, concisa e precisa, focando nos princípios da eletroquímica.
+Você é PilhIA, um assistente de IA especializado em eletroquímica.
+Sua principal função é ajudar estudantes a entenderem este campo da química.
 
-2. FORMATO:
-- Use parágrafos curtos e marcadores quando apropriado.
-- Não faça uso de LaTeX ou fórmulas matemáticas complexas; use texto simples.
-- Para listas longas, sugira uma abordagem passo a passo.
-- Para as questões pedidas, você deve copiar ela totalmente, menos a resposta correta (a não ser que o usuário peça questões com resposta correta).
-
-3. RESTRIÇÕES ABSOLUTAS:
-- NUNCA INVENTE INFORMAÇÕES.
-- NUNCA BUSQUE INFORMAÇÕES NA INTERNET.
-- NUNCA RESPONDA A PERGUNTAS FORA DO ESCOPO DE ELETROQUÍMICA (baterias, eletrólise, pilha de Daniell).
-- Não responda perguntas sobre temas sensíveis ou ilegais.
-- Não gere conteúdo ofensivo ou discriminatório.
-
-4. INTERAÇÃO:
-- Peça esclarecimentos se a pergunta for ambígua.
-- Para perguntas complexas, sugira dividi-las em partes menores.
-- Confirme se respondeu adequadamente à dúvida.
+**Suas diretrizes:**
+1.  **Foco Total:** Responda apenas a perguntas sobre eletroquímica, como pilhas (incluindo a de Daniell), baterias, eletrólise, reações de oxirredução (redox) e corrosão.
+2.  **Use o Conhecimento Fornecido:** Baseie TODAS as suas respostas no contexto e na base de conhecimento que acompanham a pergunta do usuário. Não use informações externas.
+3.  **Seja um Professor:** Explique conceitos de forma clara, didática e passo a passo. Se o usuário pedir analogias, use-as para simplificar o aprendizado.
+4.  **Questões:** Ao receber um pedido por uma "questão", forneça uma das questões da sua lista, sem a resposta. Ao explicar a resposta de uma questão, foque apenas na justificativa da alternativa correta.
+5.  **Fora de Escopo:** Se a pergunta não for sobre eletroquímica, responda educadamente: "Desculpe, minha especialidade é apenas eletroquímica e não posso ajudar com este assunto."
+6.  **Formato:** Use parágrafos curtos e listas para facilitar a leitura. Evite formatação complexa.
 `;
 
-// ==================== CHAMADA À OPENROUTER ====================
-
-async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, model = "google/gemma-7b-it:free", temperature = 0.5, max_tokens = 1500) {
-    const currentApiKey = getOpenRouterApiKey(); // <-- use a função corrigida
+// ==================== CHAMADA À OPENROUTER (API) ====================
+// CORREÇÃO: O modelo foi trocado para um que está atualmente disponível na camada gratuita.
+async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, model = "mistralai/mistral-7b-instruct:free", temperature = 0.5, max_tokens = 1500) {
+    const currentApiKey = getOpenRouterApiKey();
     if (!currentApiKey) {
         return "⚠️ Erro: Nenhuma chave da API configurada. A IA não está disponível.";
     }
@@ -256,23 +201,11 @@ async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, m
             let errorDetails = "Erro desconhecido da API.";
             try {
                 const errorText = await response.text();
-                try {
-                    const errorData = JSON.parse(errorText);
-                    if (errorData.message) {
-                        errorDetails = errorData.message;
-                    } else if (errorData.error && typeof errorData.error === 'string') {
-                        errorDetails = errorData.error;
-                    } else if (errorData.error && errorData.error.message) {
-                        errorDetails = errorData.error.message;
-                    } else if (errorData.detail) {
-                        errorDetails = errorData.detail;
-                    } else {
-                        errorDetails = JSON.stringify(errorData, null, 2);
-                    }
-                } catch {
-                    errorDetails = `Resposta da API não é JSON válido.`;
-                }
-            } catch {}
+                const errorData = JSON.parse(errorText);
+                errorDetails = errorData.error?.message || errorData.detail || JSON.stringify(errorData);
+            } catch {
+                errorDetails = `A resposta da API não é um JSON válido. Status: ${response.status}`;
+            }
             throw new Error(`Erro na API OpenRouter (Status: ${response.status}): ${errorDetails}`);
         }
         const data = await response.json();
@@ -282,11 +215,14 @@ async function callOpenRouterAPI(prompt, systemPrompt = SYSTEM_PROMPT_CHATBOT, m
         return `⚠️ Erro na comunicação com a IA: ${error.message}.`;
     }
 }    
-// ==================== LÓGICA PRINCIPAL DO CHATBOT ====================
 
+// ==================== LÓGICA PRINCIPAL DO CHATBOT ====================
 async function processUserQuery(user_input) {
     const user_lower = user_input.toLowerCase();
     let response = "";
+
+    // CORREÇÃO: Reduzido o tamanho do contexto para evitar erros de limite de prompt.
+    const KNOWLEDGE_CONTEXT_SIZE = 4000;
 
     if (user_lower.includes("calcular a voltagem de uma pilha de")) {
         const eletrodosStr = user_lower.split("de uma pilha de")[1].trim();
@@ -308,33 +244,33 @@ async function processUserQuery(user_input) {
             const explanationPrompt = (
                 `Para a questão: '${questionData.pergunta}'\n` +
                 `A alternativa correta é '(${correct_answer_letter.toUpperCase()})'. ` +
-                `Forneça a justificativa conceitual e quimicamente ACURADA para esta alternativa, ` +
-                `focando nos princípios da eletroquímica. ` +
-                `Seja conciso e preciso. **NÃO re-afirme a letra da alternativa correta, ` +
-                `NÃO mencione outras alternativas e NÃO tente re-calcular ou re-raciocinar a questão.**`
+                `Forneça a justificativa conceitual e quimicamente precisa para esta alternativa, ` +
+                `focando nos princípios da eletroquímica. Seja conciso. ` +
+                `Não mencione as outras alternativas.`
             );
             const explanation = await callOpenRouterAPI(explanationPrompt, SYSTEM_PROMPT_CHATBOT);
             const isCorrect = (user_lower === correct_answer_letter);
             if (isCorrect) {
-                response = `Você acertou! A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
+                response = `Você acertou! A resposta correta é (${correct_answer_letter.toUpperCase()}).\n\n**Justificativa:**\n${explanation}\n\nDeseja fazer outra questão? (sim/não)`;
             } else {
-                response = `Você errou. A resposta correta é (${correct_answer_letter.toUpperCase()}).\n${explanation}\nDeseja fazer outra questão? (sim/não)`;
+                response = `Você errou. A resposta correta é (${correct_answer_letter.toUpperCase()}).\n\n**Justificativa:**\n${explanation}\n\nDeseja fazer outra questão? (sim/não)`;
             }
         } else {
             chatState.currentQuestionData = null;
-            const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
+            const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, KNOWLEDGE_CONTEXT_SIZE)}\n\nPergunta do usuário: ${user_input}`;
             response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
         }
     } else if (user_lower.includes("gerar questões") || user_lower.includes("questões enem") || user_lower.includes("questão")) {
         response = generateQuestion();
     } else {
-        const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, 7000)}\n\nPergunta: ${user_input.substring(0, 300)}`;
+        const generalPrompt = `Contexto: ${chatState.knowledgeBase.substring(0, KNOWLEDGE_CONTEXT_SIZE)}\n\nPergunta do usuário: ${user_input}`;
         response = await callOpenRouterAPI(generalPrompt, SYSTEM_PROMPT_CHATBOT);
     }
     return response;
 }
 
 // ==================== SIDEBAR E UI CHAT MULTI-HISTÓRICO ====================
+// Nenhuma alteração necessária nesta seção. O código original está mantido.
 
 function toggleSidebar() {
     const sidebarContent = document.getElementById('sidebarContent');
@@ -382,7 +318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card suggestion-card" data-suggestion="Quero ajuda para entender [problema]">
+                    <div class="card suggestion-card" data-suggestion="Quero ajuda para entender o que é uma pilha de Daniell">
                         <div class="card-body text-center">
                             <h6 class="card-title">Resolver Dúvidas</h6>
                             <p class="card-text small">Tire dúvidas sobre determinado assunto do campo de eletroquímica.</p>
@@ -390,7 +326,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card suggestion-card" data-suggestion="Calcular a voltagem de uma pilha de [eletrodo 1] e [eletrodo 2]">
+                    <div class="card suggestion-card" data-suggestion="Calcular a voltagem de uma pilha de zinco e cobre">
                         <div class="card-body text-center">
                             <h6 class="card-title">Pilha Virtual</h6>
                             <p class="card-text small">Monte uma pilha virtual e calcule a voltagem.</p>
@@ -398,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card suggestion-card" data-suggestion="Explicar eletroquímica fazendo analogias com [insira]">
+                    <div class="card suggestion-card" data-suggestion="Explique eletrólise fazendo uma analogia com uma fábrica">
                         <div class="card-body text-center">
                             <h6 class="card-title">Analogias</h6>
                             <p class="card-text small">Explique eletroquímica fazendo analogias com determinado tema ou assunto</p>
@@ -552,7 +488,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lines = content.split('\n');
         lines.forEach(line => {
             const paragraph = document.createElement('p');
-            paragraph.innerHTML = line;
+            paragraph.innerHTML = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Adiciona suporte para negrito
             messageDiv.appendChild(paragraph);
         });
         chatContainer.appendChild(messageDiv);
@@ -650,5 +586,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadChatHistory();
     addSuggestionsToChat();
     userInput.focus();
-
 });
