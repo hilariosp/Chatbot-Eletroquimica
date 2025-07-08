@@ -38,7 +38,8 @@ function getOpenRouterApiKey() {
     const chaveParcial = listaDeChavesParciais[Math.floor(Math.random() * listaDeChavesParciais.length)];
 
     // Pede ao usuário para digitar o final secreto da chave
-    const inputDoUsuario = prompt(`Para completar a chave API, por favor, digite os ${chaveParcial.sufixo_secreto.length} últimos caracteres:`);
+    const inputDoUsuario = prompt(`Para completar a chave, digite este sufixo: ${chaveParcial.sufixo_secreto}`);
+
 
     // Verifica se o que o usuário digitou bate com o final secreto
     if (inputDoUsuario && inputDoUsuario.trim() === chaveParcial.sufixo_secreto) {
